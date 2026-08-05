@@ -1,36 +1,174 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LumenFlow — Stellar Testnet Payment App
 
-## Getting Started
+LumenFlow is a simple Stellar Testnet dApp built for the Stellar White Belt challenge. It focuses on the core Level 1 requirements:
 
-First, run the development server:
+- connect a Freighter wallet
+- display the connected wallet's XLM balance
+- send a native XLM payment on Stellar Testnet
+- show success or failure feedback after transaction submission
+
+## Current Status
+
+The app is implemented and builds successfully.
+
+What is complete:
+- Freighter connection flow in the UI
+- Testnet-only wallet/network checks
+- Horizon-based XLM balance lookup
+- native XLM payment transaction creation
+- Freighter signing flow integration
+- transaction submission flow and feedback UI
+- repo guidance files for future Hermes/ChatGPT sessions
+
+What is still pending:
+- final manual verification in a browser that has the Freighter extension installed
+- final screenshot capture for challenge submission
+
+## Tech Stack
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- `@stellar/stellar-sdk`
+- `@stellar/freighter-api`
+
+## Requirements Coverage
+
+### 1. Wallet Setup
+- Freighter wallet is the intended wallet target
+- App is built specifically for Stellar Testnet
+
+### 2. Wallet Connection
+- Connect wallet flow is implemented
+- Disconnect flow is implemented in the UI state
+
+### 3. Balance Handling
+- Connected wallet XLM balance is fetched from Horizon Testnet
+- Balance is displayed in the UI
+- Unfunded account state is handled with a Friendbot prompt
+
+### 4. Transaction Flow
+- Native XLM payment transaction is created with Stellar SDK
+- Transaction is signed through Freighter
+- Signed transaction is submitted to Stellar Testnet
+- Success or failure feedback is shown in the UI
+- Transaction hash is shown after successful submission
+
+## Local Setup
+
+### Prerequisites
+- Node.js 18+ recommended
+- npm
+- Freighter browser extension
+
+### Install
+
+```bash
+npm install
+```
+
+### Run development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Default Next.js local URL:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Current workspace note:
 
-## Learn More
+```text
+LumenFlow is currently served on port 3002 in this environment so port 3001 remains available for SettleFlow.
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Production build
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run build
+npm run start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## How to Use
 
-## Deploy on Vercel
+1. Open LumenFlow in a browser with Freighter installed.
+2. Switch Freighter to Stellar Testnet.
+3. Connect the wallet.
+4. If the account is unfunded, use Friendbot.
+5. Confirm the XLM balance is visible.
+6. Enter a recipient address and amount.
+7. Sign the transaction in Freighter.
+8. Wait for the transaction result and hash.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Testnet Notes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Horizon endpoint
+```text
+https://horizon-testnet.stellar.org
+```
+
+### Friendbot
+```text
+https://friendbot.stellar.org/?addr=<PUBLIC_KEY>
+```
+
+## Screenshots for Submission
+
+Add screenshots under:
+
+```text
+docs/screenshots/
+```
+
+Checklist and naming guide:
+
+```text
+docs/screenshots/README.md
+```
+
+Recommended required files:
+- `01-wallet-connected.png`
+- `02-balance-displayed.png`
+- `03-send-form-filled.png`
+- `04-transaction-success.png`
+
+## Project Structure
+
+```text
+src/
+  app/
+    layout.tsx
+    page.tsx
+    globals.css
+  components/
+    BalanceCard.tsx
+    SendPaymentForm.tsx
+    TxResultCard.tsx
+    WalletCard.tsx
+  lib/
+    stellar/
+      constants.ts
+      horizon.ts
+      submit.ts
+      transactions.ts
+      types.ts
+      validation.ts
+      wallet.ts
+    utils/
+      format.ts
+
+docs/
+  project-brief.md
+  progress.md
+  screenshots/
+```
+
+## Notes
+
+- The current verification environment used during development did not include the Freighter browser extension, so final end-to-end manual verification must be completed in a Freighter-enabled browser.
+- This project intentionally keeps scope tight to White Belt / Level 1 requirements.
+- Future expansion can build on the same `LumenFlow` product line if later challenge levels allow it.
