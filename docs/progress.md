@@ -68,3 +68,4 @@ feat/ux-enhancements
 - Added entrance animations (`animate-in fade-in slide-in-from-bottom-2`, staggered delays) to the hero and main content sections, plus color-transition easing when switching themes.
 - Removed the "Freighter debug trace" / "Client diagnostics" UI blocks from `WalletCard` (kept the underlying `console.log` calls for devtools debugging) since they were dev-only scaffolding with no submission value.
 - Verified with a successful `npm run build` after the bonus-feature pass; restarted the local server on port 3002 and confirmed both dark and light themes render correctly in-browser. QR code visual verification is still blocked on Freighter (only renders once wallet is connected).
+- Changed the Connection/Network status grid in `WalletCard` from a 2-column layout to a single full-width stacked column per user request; verified in-browser.

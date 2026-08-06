@@ -88,7 +88,7 @@ export function WalletCard({ wallet, onConnect, onDisconnect }: WalletCardProps)
       </CardHeader>
 
       <CardContent className="space-y-5 px-6 pt-6 pb-6 sm:px-7">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 grid-cols-1">
           <div className="rounded-2xl border border-border bg-muted/35 px-4 py-3">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
