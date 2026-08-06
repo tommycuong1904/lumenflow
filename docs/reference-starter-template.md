@@ -20,16 +20,22 @@
 - Functionality — 30%
 
 ## Bonus features + point values (reference template's list)
-- Dark/Light Mode — 10 pts — ⬜ not in LumenFlow
+- Dark/Light Mode — 10 pts — ✅ LumenFlow has this (`next-themes` + `.light` CSS vars)
 - Copy Address — 5 pts — ✅ LumenFlow has this
-- QR Code for address — 10 pts — ⬜ not in LumenFlow
+- QR Code for address — 10 pts — ✅ LumenFlow has this (`qrcode.react`, shown once connected)
 - Balance Chart — 15 pts — ⬜ not in LumenFlow
 - Search Transactions — 10 pts — ⬜ N/A (LumenFlow has no tx history list, out of scope per brief)
 - Multiple Assets — 15 pts — ⬜ explicitly out of scope in LumenFlow brief (XLM only)
-- Animations — 10 pts — ⬜ not deliberately added
+- Animations — 10 pts — ✅ LumenFlow has this (entrance/transition animations on main sections)
 - Mobile Responsive — 10 pts — ✅ LumenFlow has responsive layout
 - Transaction Confirmations — 10 pts — ✅ LumenFlow has explicit review/confirm step before signing
 - Address Book — 15 pts — ⬜ not in LumenFlow
+
+## Current bonus score estimate
+55/100 achievable points captured (Dark/Light Mode, Copy Address, QR Code, Animations,
+Mobile Responsive, Transaction Confirmations). Remaining 45 pts (Balance Chart, Search
+Transactions, Multiple Assets, Address Book) are out of scope for White Belt Level 1
+per `docs/project-brief.md` — would require deliberate scope expansion + user confirmation.
 
 ## Notes for future sessions
 - Do NOT assume LumenFlow should adopt this template's file structure or

@@ -264,9 +264,10 @@ export default function Home() {
       setTx({
         status: "success",
         hash: submission.hash ?? null,
-        message: submission.hash
-          ? `Transaction submitted successfully. Hash: ${submission.hash}`
-          : "Transaction submitted successfully.",
+        message: "Transaction submitted successfully.",
+        amount: form.amount.trim(),
+        recipient: form.recipient.trim(),
+        memo: form.memo.trim() || null,
       });
       setIsConfirmingPayment(false);
 

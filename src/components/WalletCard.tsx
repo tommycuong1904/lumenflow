@@ -47,11 +47,40 @@ export function WalletCard({ wallet, onConnect, onDisconnect }: WalletCardProps)
   async function handleCopyAddress() {
     if (!wallet.publicKey) return;
 
+    const address = wallet.publicKey;
+
     try {
-      await navigator.clipboard.writeText(wallet.publicKey);
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(address);
+      } else {
+        copyWithFallback(address);
+      }
       setCopyState("copied");
     } catch {
-      setCopyState("error");
+      try {
+        copyWithFallback(address);
+        setCopyState("copied");
+      } catch {
+        setCopyState("error");
+      }
+    }
+  }
+
+  function copyWithFallback(text: string) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    textarea.style.top = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    const succeeded = document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    if (!succeeded) {
+      throw new Error("execCommand copy failed");
     }
   }
 
@@ -98,16 +127,33 @@ export function WalletCard({ wallet, onConnect, onDisconnect }: WalletCardProps)
                 </p>
               </div>
               {wallet.connected && wallet.publicKey ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopyAddress}
-                  disabled={wallet.loading}
-                  className="shrink-0 rounded-full border-border bg-background/60 px-3 text-xs text-foreground hover:bg-background"
-                >
-                  {copyState === "copied" ? "Copied" : copyState === "error" ? "Retry copy" : "Copy address"}
-                </Button>
+                <div className="relative shrink-0">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyAddress}
+                    disabled={wallet.loading}
+                    className="rounded-full border-border bg-background/60 px-3 text-xs text-foreground transition-transform duration-150 hover:bg-background active:scale-95"
+                  >
+                    Copy address
+                  </Button>
+                  <span
+                    role="status"
+                    aria-live="polite"
+                    className={`pointer-events-none absolute -top-9 right-0 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium shadow-sm transition-all duration-300 ${
+                      copyState === "idle"
+                        ? "translate-y-1 opacity-0"
+                        : "translate-y-0 opacity-100"
+                    } ${
+                      copyState === "error"
+                        ? "border-destructive/30 bg-destructive/10 text-destructive"
+                        : "border-primary/25 bg-primary/10 text-primary"
+                    }`}
+                  >
+                    {copyState === "error" ? "Copy failed" : "Copied!"}
+                  </span>
+                </div>
               ) : null}
             </div>
           </div>

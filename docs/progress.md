@@ -37,6 +37,10 @@ Core Stellar integration branch is active. Wallet, balance, and send-payment MVP
 - [x] Add Dark/Light mode toggle (next-themes + `.light` CSS variables)
 - [x] Add wallet address QR code (qrcode.react)
 - [x] Add entrance/transition animations across main sections
+- [x] Fix Copy Address clipboard fallback for non-secure (HTTP) origins
+- [x] Fix content overflow in TxResultCard's status Alert
+- [x] Expand transaction receipt with Amount, Recipient, Memo
+- [x] Remove duplicated/redundant transaction hash displays
 - [ ] Add final screenshots to docs/screenshots/
 - [ ] Manual browser verification with Freighter on Testnet
 
@@ -69,3 +73,11 @@ feat/ux-enhancements
 - Removed the "Freighter debug trace" / "Client diagnostics" UI blocks from `WalletCard` (kept the underlying `console.log` calls for devtools debugging) since they were dev-only scaffolding with no submission value.
 - Verified with a successful `npm run build` after the bonus-feature pass; restarted the local server on port 3002 and confirmed both dark and light themes render correctly in-browser. QR code visual verification is still blocked on Freighter (only renders once wallet is connected).
 - Changed the Connection/Network status grid in `WalletCard` from a 2-column layout to a single full-width stacked column per user request; verified in-browser.
+- Fixed Copy Address on non-secure (HTTP, non-localhost) origins: `navigator.clipboard.writeText` silently fails outside a secure context, so added a `document.execCommand("copy")` fallback via a hidden textarea. Copy feedback now shows as a small floating "Copied!" tooltip above the button (auto-hides after 1.8s) instead of changing the button's own label.
+- Changed the Recipient/Amount/Memo confirm-step grid in `SendPaymentForm` from 3 columns to a single full-width stacked column per user request.
+- Fixed content overflow in `TxResultCard`'s status `Alert`: shadcn/ui's base `Alert` uses CSS grid without `min-w-0` on child slots, so long status text and the 56-char transaction hash could overflow the card. Added `min-w-0`/`overflow-hidden`/`break-words`/`break-all` locally in `TxResultCard` (did not touch the shared `ui/alert.tsx` base component).
+- Removed the duplicated transaction hash from the success message string (was embedded via template literal); the hash now only appears in its own dedicated field.
+- Expanded the transaction result receipt to include Amount, Recipient, and Memo (when provided) alongside Status, Tx hash, and the Stellar Expert link. Added `amount`/`recipient`/`memo` as optional fields on `TxState`, snapshotted at submit-success time (not re-read from the live form) so the receipt stays stable even if the form changes afterward.
+- Removed the redundant shortened-hash `Badge` from `TxResultCard` (kept only the full hash, per user request) and cleaned up the now-unused `shortHash` import.
+- Synced `docs/reference-starter-template.md`'s bonus-feature checklist with what's actually implemented (Dark/Light Mode, QR Code, Animations now marked done) and added a running bonus-score estimate (55/100 achievable, remaining 45 pts are out of White Belt Level 1 scope).
+- Verified all of the above with a successful `npm run build` after each change; restarted the local server on port 3002 and confirmed HTTP 200 after every restart.

@@ -43,26 +43,58 @@ export function TxResultCard({ tx }: TxResultCardProps) {
       <CardContent className="px-6 pt-6 pb-6 sm:px-7">
         <Alert
           variant={isError ? "destructive" : "default"}
-          className={
+          className={cn(
+            "min-w-0 overflow-hidden",
             isSuccess
               ? "rounded-[28px] border-emerald-500/25 bg-emerald-500/10"
               : isError
                 ? "rounded-[28px] border-destructive/30 bg-destructive/8"
-                : "rounded-[28px] border-border/80 bg-secondary/30"
-          }
+                : "rounded-[28px] border-border/80 bg-secondary/30",
+          )}
         >
-          <AlertTitle className={isSuccess ? "text-emerald-200" : "text-foreground"}>Status: {statusLabel}</AlertTitle>
-          <AlertDescription className={isSuccess ? "text-emerald-50/90" : isError ? "text-rose-100/90" : "text-muted-foreground"}>
-            <p>{tx.message ?? "No transaction submitted yet."}</p>
+          <AlertTitle className={cn("min-w-0 break-words", isSuccess ? "text-emerald-200" : "text-foreground")}>
+            Status: {statusLabel}
+          </AlertTitle>
+          <AlertDescription
+            className={cn(
+              "min-w-0",
+              isSuccess ? "text-emerald-50/90" : isError ? "text-rose-100/90" : "text-muted-foreground",
+            )}
+          >
+            <p className="break-all">{tx.message ?? "No transaction submitted yet."}</p>
             {tx.hash ? (
               <div className="mt-4 space-y-4 rounded-2xl border border-border/70 bg-background/40 px-4 py-4 sm:px-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Transaction hash</p>
-                  <Badge variant="outline" className="border-primary/20 bg-primary/8 font-mono text-primary">
-                    {shortHash(tx.hash)}
-                  </Badge>
                 </div>
-                <p className="break-all font-mono text-xs text-foreground">{tx.hash}</p>
+
+                <div className="grid gap-3 grid-cols-1">
+                  {tx.hash ? (
+                    <div className="rounded-2xl border border-border/60 bg-secondary/25 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Tx hash</p>
+                      <p className="mt-2 break-all text-sm font-medium text-foreground">{tx.hash}</p>
+                    </div>
+                  ) : null}
+                  {tx.amount ? (
+                    <div className="rounded-2xl border border-border/60 bg-secondary/25 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Amount</p>
+                      <p className="mt-2 text-sm font-medium text-foreground">{tx.amount} XLM</p>
+                    </div>
+                  ) : null}
+                  {tx.recipient ? (
+                    <div className="rounded-2xl border border-border/60 bg-secondary/25 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Recipient</p>
+                      <p className="mt-2 break-all text-sm font-medium text-foreground">{tx.recipient}</p>
+                    </div>
+                  ) : null}
+                  {tx.memo ? (
+                    <div className="rounded-2xl border border-border/60 bg-secondary/25 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Memo</p>
+                      <p className="mt-2 break-words text-sm font-medium text-foreground">{tx.memo}</p>
+                    </div>
+                  ) : null}
+                </div>
+
                 <div className="flex flex-col gap-4 border-t border-border/40 pt-4 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-xs text-muted-foreground">Captured for White Belt submission evidence.</span>
                   <a

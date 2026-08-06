@@ -18,6 +18,9 @@ export type TxState = {
   status: "idle" | "validating" | "signing" | "submitting" | "success" | "error";
   hash: string | null;
   message: string | null;
+  amount?: string | null;
+  recipient?: string | null;
+  memo?: string | null;
 };
 
 export type SendFormState = {

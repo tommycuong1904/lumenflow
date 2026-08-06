@@ -136,7 +136,7 @@ export function SendPaymentForm({
 
           {isConfirming ? (
             <div className="space-y-4 rounded-2xl border border-primary/15 bg-primary/6 px-4 py-4 sm:px-5">
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 grid-cols-1">
                 <div className="rounded-2xl border border-border/70 bg-background/60 px-4 py-3">
                   <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Recipient</p>
                   <p className="mt-2 break-all text-sm font-medium text-foreground">{form.recipient.trim()}</p>
