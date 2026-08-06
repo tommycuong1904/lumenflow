@@ -58,44 +58,15 @@ Build a submission-ready Stellar White Belt application that:
 
 ## Agent efficiency rules
 
-### File access
-
-- Never scan or recursively inspect the entire repository unless explicitly requested.
-- Read only the files required for the current task.
-- Use targeted file searches instead of broad repository scans.
-- If more than five source files are required, list them first and explain why before opening additional files.
-- Do not reopen unchanged files during the same task unless verification is required.
-
-### Implementation
-
-- Modify only files directly related to the current task.
-- Make the smallest correct implementation.
+- Do not scan the entire repository unless explicitly requested.
+- Open only files required for the current task.
+- Modify only files directly related to the task.
 - Prefer small targeted edits over full-file rewrites.
 - Do not regenerate working code unnecessarily.
-- Do not perform unrelated refactoring, cleanup, or formatting.
-- Do not implement additional features unless explicitly requested.
-
-### Validation
-
-- Prefer targeted validation over full-project validation.
-- Run production builds only after completing a feature or when explicitly requested.
-- Do not rerun unchanged failing commands repeatedly.
-
-### Documentation
-
-- Read `docs/challenge.md` only when an official requirement needs clarification.
-- Read Stellar or Freighter documentation only when API behavior must be verified.
+- Do not explain unchanged code.
+- Keep responses concise unless a detailed explanation is requested.
+- Read Stellar or Freighter documentation only when the current task requires API verification.
 - Prefer official Stellar, Freighter, and installed Next.js documentation.
-
-### Responses
-
-- Keep responses concise.
-- Report only:
-  - result
-  - files changed
-  - validation performed
-  - remaining blockers, if any
-- Do not explain unchanged code unless requested.
 
 ## Next.js rules
 
@@ -115,40 +86,6 @@ After completing a meaningful task, update `docs/progress.md` with:
 
 Do not modify `docs/challenge.md`.
 
-## Task workflow
-
-For every new task:
-
-1. Read `docs/project-brief.md`.
-2. Read `docs/progress.md`.
-3. Determine the smallest implementation scope.
-4. List required files before opening additional source files.
-5. Implement only the requested feature.
-6. Validate only the affected functionality.
-7. Update `docs/progress.md`.
-8. Stop and wait for the next instruction.
-
-Do not automatically continue with the next feature.
-
-## Command rules
-
-- Do not install, remove, or upgrade dependencies unless explicitly requested.
-- Do not delete files unless explicitly requested.
-- Do not modify project structure unless required by the current task.
-- Avoid unnecessary terminal commands.
-- Do not run the development server unless runtime verification is required.
-- Do not run the production build after every small edit.
-- Do not repeat the same failing command without first changing the relevant code or configuration.
-
-## Security
-
-- Never expose API keys, private keys, seed phrases, recovery phrases, or secrets.
-- Never print or include `.env` values in responses or logs.
-- Only reference environment variable names when required.
-- Never hardcode secrets into source code.
-- Do not read `.env` files unless the current task specifically requires checking environment variable names.
-- Client-side code may use only explicitly public environment variables.
-
 ## Expected deliverables
 
 - working production build
@@ -159,3 +96,5 @@ Do not automatically continue with the next feature.
 - transaction hash or confirmation message
 - repository documentation suitable for future AI sessions
 - submission-ready README and screenshots
+
+
