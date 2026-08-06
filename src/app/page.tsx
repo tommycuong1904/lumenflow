@@ -57,6 +57,8 @@ const readinessPoints = [
   "Signed Stellar payment submission",
 ];
 
+const WALLET_SESSION_KEY = "lumenflow_wallet_session";
+
 export default function Home() {
   const [wallet, setWallet] = useState<WalletState>(initialWalletState);
   const [balance, setBalance] = useState<BalanceState>(initialBalanceState);
@@ -73,6 +75,14 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
+
+    const hadSession = window.localStorage.getItem(WALLET_SESSION_KEY) === "connected";
+    if (!hadSession) return;
+
+    // Silently attempt to restore the wallet session without prompting the
+    // user again — Freighter only re-prompts if access was revoked or the
+    // account changed, otherwise getAddress() resolves immediately.
+    void handleConnect({ silent: true });
   }, []);
 
   useEffect(() => {
@@ -114,21 +124,31 @@ export default function Home() {
     }
   }
 
-  async function handleConnect() {
+  async function handleConnect(options?: { silent?: boolean }) {
+    const silent = options?.silent ?? false;
     const clickedAt = new Date().toISOString();
-    setReactClickCount((count) => count + 1);
-    setWalletDebug([{ step: "click", detail: `Connect clicked at ${clickedAt}` }]);
-    setWallet((current) => ({ ...current, loading: true, error: null }));
-    console.log("[LumenFlow][ReactHandleConnect]", clickedAt);
+    if (!silent) {
+      setReactClickCount((count) => count + 1);
+      setWalletDebug([{ step: "click", detail: `Connect clicked at ${clickedAt}` }]);
+    }
+    setWallet((current) => ({ ...current, loading: !silent, error: null }));
+    console.log("[LumenFlow][ReactHandleConnect]", clickedAt, silent ? "(silent restore)" : "");
 
     try {
       const result = await connectWallet();
-      if (result.debug) {
+      if (result.debug && !silent) {
         setWalletDebug((current) => [...current, ...result.debug]);
         console.log("[LumenFlow][FreighterDebug]", result.debug);
       }
 
       if ("error" in result) {
+        if (silent) {
+          // Session could not be silently restored (revoked access, no
+          // Freighter, etc.) — clear the stale session flag and stay idle.
+          window.localStorage.removeItem(WALLET_SESSION_KEY);
+          setWallet(initialWalletState);
+          return;
+        }
         setWallet((current) => ({
           ...current,
           loading: false,
@@ -139,17 +159,21 @@ export default function Home() {
       }
 
       if (!result.isTestnet || result.networkPassphrase !== NETWORK_PASSPHRASE) {
+        if (silent) {
+          window.localStorage.removeItem(WALLET_SESSION_KEY);
+        }
         setWallet({
           connected: false,
           publicKey: null,
           network: result.network,
           networkPassphrase: result.networkPassphrase,
           loading: false,
-          error: "Please switch Freighter to Stellar Testnet before using LumenFlow.",
+          error: silent ? null : "Please switch Freighter to Stellar Testnet before using LumenFlow.",
         });
         return;
       }
 
+      window.localStorage.setItem(WALLET_SESSION_KEY, "connected");
       setWallet({
         connected: true,
         publicKey: result.address,
@@ -161,6 +185,11 @@ export default function Home() {
 
       await refreshBalance(result.address);
     } catch (error) {
+      if (silent) {
+        window.localStorage.removeItem(WALLET_SESSION_KEY);
+        setWallet(initialWalletState);
+        return;
+      }
       const message = error instanceof Error ? error.message : "Could not connect to Freighter right now. Please try again.";
       setWallet((current) => ({
         ...current,
@@ -174,6 +203,7 @@ export default function Home() {
   }
 
   function handleDisconnect() {
+    window.localStorage.removeItem(WALLET_SESSION_KEY);
     setWallet(initialWalletState);
     setBalance(initialBalanceState);
     setTx(initialTxState);
@@ -354,6 +384,7 @@ export default function Home() {
           onSubmit={handleSubmit}
           onConfirm={handleConfirmSubmit}
           onCancelConfirmation={handleCancelConfirmation}
+          lastSuccessfulRecipient={tx.status === "success" ? tx.recipient : null}
         />
         <TxResultCard tx={tx} />
       </section>

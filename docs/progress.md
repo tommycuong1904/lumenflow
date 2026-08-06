@@ -41,6 +41,8 @@ Core Stellar integration branch is active. Wallet, balance, and send-payment MVP
 - [x] Fix content overflow in TxResultCard's status Alert
 - [x] Expand transaction receipt with Amount, Recipient, Memo
 - [x] Remove duplicated/redundant transaction hash displays
+- [x] Add Address Book bonus feature (localStorage, add/remove/use, auto-save on send)
+- [x] Add wallet session persistence across refresh/new tab (localStorage flag + silent reconnect)
 - [ ] Add final screenshots to docs/screenshots/
 - [ ] Manual browser verification with Freighter on Testnet
 
@@ -81,3 +83,6 @@ feat/ux-enhancements
 - Removed the redundant shortened-hash `Badge` from `TxResultCard` (kept only the full hash, per user request) and cleaned up the now-unused `shortHash` import.
 - Synced `docs/reference-starter-template.md`'s bonus-feature checklist with what's actually implemented (Dark/Light Mode, QR Code, Animations now marked done) and added a running bonus-score estimate (55/100 achievable, remaining 45 pts are out of White Belt Level 1 scope).
 - Verified all of the above with a successful `npm run build` after each change; restarted the local server on port 3002 and confirmed HTTP 200 after every restart.
+- Added an Address Book bonus feature (`src/lib/stellar/addressBook.ts` + `src/components/AddressBook.tsx`): localStorage-backed (`lumenflow_address_book`) list of saved addresses with labels, shown above the Recipient field in `SendPaymentForm`. Supports add/remove by hand, a "Use" button to fill the recipient field, and auto-saves the recipient after a successful send.
+- Added wallet session persistence: on successful connect, a `lumenflow_wallet_session` flag is written to `localStorage`; on mount, if the flag is present, `handleConnect` silently re-runs (no debug logging, no click counters) to restore `wallet` state without prompting Freighter again (Freighter only re-prompts if access was actually revoked). Disconnect clears the flag. Confirmed via code review + build only — needs a real Freighter session to verify the F5/new-tab restore behavior end to end.
+- Investigated a user report that clicking Connect after clearing browser cache still skips the Freighter approval popup: confirmed this is expected Freighter behavior, not a LumenFlow bug — Freighter's per-site "allowed" permission lives in the extension's own storage, independent of the website's cache/localStorage, so it survives a site-side cache clear. Decided (per user) to leave this as-is for now; no code change made.

@@ -24,6 +24,7 @@ LumenFlow is a simple Stellar Testnet payment app focused on a clean wallet-to-p
 - Dark/Light mode toggle (bonus)
 - QR code for wallet address (bonus)
 - UI animations/transitions polish (bonus)
+- Address Book: save/reuse frequent recipient addresses via localStorage (bonus)
 
 ## Out of scope
 - multiple wallet providers

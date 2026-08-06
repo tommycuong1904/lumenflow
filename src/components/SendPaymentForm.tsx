@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AddressBook } from "@/components/AddressBook";
 import type { SendFormState, TxState, WalletState } from "@/lib/stellar/types";
 
 type SendPaymentFormProps = {
@@ -21,6 +22,7 @@ type SendPaymentFormProps = {
   onSubmit: () => void;
   onConfirm: () => Promise<void>;
   onCancelConfirmation: () => void;
+  lastSuccessfulRecipient?: string | null;
 };
 
 export function SendPaymentForm({
@@ -32,6 +34,7 @@ export function SendPaymentForm({
   onSubmit,
   onConfirm,
   onCancelConfirmation,
+  lastSuccessfulRecipient,
 }: SendPaymentFormProps) {
   const isBusy = tx.status === "validating" || tx.status === "signing" || tx.status === "submitting";
   const paymentNotes = wallet.connected
@@ -53,6 +56,11 @@ export function SendPaymentForm({
       </CardHeader>
 
       <CardContent className="space-y-5 px-6 pt-6 pb-6 sm:px-7">
+        <AddressBook
+          onUseAddress={(address) => onChange({ recipient: address })}
+          autoSaveAddress={lastSuccessfulRecipient}
+        />
+
         <div className="grid gap-5">
           <div className="grid gap-2">
             <Label htmlFor="recipient-address" className="text-sm font-medium text-foreground">
