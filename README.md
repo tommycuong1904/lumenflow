@@ -9,22 +9,22 @@ LumenFlow is a simple Stellar Testnet dApp built for the Stellar White Belt chal
 
 ## Current Status
 
-The app is implemented, polished, and builds successfully for production preview.
+The app is implemented, polished, verified end-to-end with a real Freighter wallet on Stellar Testnet, and ready for submission.
 
 What is complete:
-- Freighter connection flow in the UI
+- Freighter connection flow in the UI, with session persistence across page refresh / new tab (silently restores the connection instead of re-prompting, as long as Freighter access hasn't been revoked)
 - Testnet-only wallet/network checks
 - Horizon-based XLM balance lookup
 - native XLM payment transaction creation
 - explicit **transaction confirmation step** before signing
 - Freighter signing flow integration
-- transaction submission flow and feedback UI
+- transaction submission flow and feedback UI, with a full receipt (Status, Tx hash, Amount, Recipient, Memo, Stellar Expert link)
+- Address Book: save/label/reuse frequent recipient addresses via `localStorage`, with auto-save of the recipient after a successful send
 - clean error, loading, and disabled states
 - responsive layout for mobile and desktop
+- Dark/Light mode, wallet address QR code, and UI animation polish (bonus scope)
 
-What is pending for submission:
-- final manual verification in a browser that has the Freighter extension installed
-- final screenshot capture (`docs/screenshots/`)
+Manual verification and screenshot capture are both complete — see below.
 
 ## Tech Stack
 
@@ -57,7 +57,14 @@ What is pending for submission:
 - Transaction is signed through Freighter
 - Signed transaction is submitted to Stellar Testnet
 - Success or failure feedback is shown in the UI
-- Transaction hash is shown after successful submission with a link to Stellar Expert
+- Full receipt shown after successful submission: Status, Tx hash, Amount, Recipient, Memo (when provided), and a link to Stellar Expert
+
+### 5. Bonus Features
+- Dark/Light mode toggle (persisted via `next-themes`)
+- QR code for the connected wallet address
+- Entrance/transition animations across the main UI sections
+- Address Book: save frequently used recipient addresses with a label, reuse them with one click, remove them, and auto-save the recipient after every successful send — all stored client-side in `localStorage`
+- Wallet session persistence: staying connected across a page refresh or a new tab, without needing to click Connect again (Freighter only re-prompts if access was actually revoked)
 
 ## Local Setup
 
@@ -121,25 +128,33 @@ https://horizon-testnet.stellar.org
 https://friendbot.stellar.org/?addr=<PUBLIC_KEY>
 ```
 
-## Screenshots for Submission
+## Screenshots
 
-Add screenshots under:
+All captured with a real Freighter wallet connected on Stellar Testnet.
 
-```text
-docs/screenshots/
-```
+### Core flow
 
-Checklist and naming guide:
+| Wallet connected | Balance displayed |
+|---|---|
+| ![Wallet connected](docs/screenshots/01-wallet-connected.png) | ![Balance displayed](docs/screenshots/02-balance-displayed.png) |
 
-```text
-docs/screenshots/README.md
-```
+| Send form filled | Transaction success |
+|---|---|
+| ![Send form filled](docs/screenshots/03-send-form-filled.png) | ![Transaction success](docs/screenshots/04-transaction-success.png) |
 
-Recommended required files:
-- `01-wallet-connected.png`
-- `02-balance-displayed.png`
-- `03-send-form-filled.png`
-- `04-transaction-success.png`
+### Additional states
+
+| Friendbot / unfunded state | Wallet disconnected state |
+|---|---|
+| ![Friendbot unfunded state](docs/screenshots/05-friendbot-unfunded-state.png) | ![Wallet disconnected state](docs/screenshots/06-wallet-disconnected-state.png) |
+
+### Bonus features
+
+| Dark / Light mode | Wallet QR code | Address Book |
+|---|---|---|
+| ![Dark and light mode](docs/screenshots/07-dark-light-mode.png) | ![Wallet QR code](docs/screenshots/08-wallet-qr-code.png) | ![Address Book](docs/screenshots/09-address-book.png) |
+
+Full checklist and naming guide: [`docs/screenshots/README.md`](docs/screenshots/README.md)
 
 ## Project Structure
 
@@ -150,12 +165,25 @@ src/
     page.tsx
     globals.css
   components/
+    AddressBook.tsx
     BalanceCard.tsx
     SendPaymentForm.tsx
+    ThemeToggle.tsx
     TxResultCard.tsx
     WalletCard.tsx
+    WalletQrCode.tsx
+    ui/
+      alert.tsx
+      badge.tsx
+      button.tsx
+      card.tsx
+      input.tsx
+      label.tsx
+      separator.tsx
+      textarea.tsx
   lib/
     stellar/
+      addressBook.ts
       constants.ts
       horizon.ts
       submit.ts
@@ -165,15 +193,21 @@ src/
       wallet.ts
     utils/
       format.ts
+    utils.ts
 
 docs/
   project-brief.md
   progress.md
+  reference-starter-template.md
   screenshots/
 ```
 
 ## Notes
 
-- The current verification environment used during development did not include the Freighter browser extension, so final end-to-end manual verification must be completed in a Freighter-enabled browser.
-- This project intentionally keeps scope tight to White Belt / Level 1 requirements.
+- Manual end-to-end verification was completed with a real Freighter extension on Stellar Testnet (connect, balance, copy address, QR code, send payment, receipt fields, Address Book, session persistence) — all checks passed.
+- This project intentionally expanded beyond strict White Belt / Level 1 minimums to pick up bonus points (see `docs/project-brief.md` and `docs/reference-starter-template.md`), while keeping the core Stellar/Freighter logic untouched.
 - Future expansion can build on the same `LumenFlow` product line if later challenge levels allow it (e.g. evolving into a Payment Tracker or Approval-to-Settlement Workflow).
+
+## Repository
+
+https://github.com/tommycuong1904/lumenflow

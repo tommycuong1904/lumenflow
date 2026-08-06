@@ -4,7 +4,7 @@
 Deliver a submission-ready Stellar White Belt app.
 
 ## Current Status
-Core Stellar integration branch is active. Wallet, balance, and send-payment MVP flows are scaffolded in the UI and helper layer. The app has received a polish pass, a challenge-oriented README, and a screenshot capture framework. A follow-up UI pass integrated shadcn/ui primitives and added an explicit transaction review/confirmation step before signing. Scope was then intentionally expanded beyond strict White Belt minimums to pick up bonus points from the referenced starter-template rubric (see `docs/reference-starter-template.md`): Dark/Light Mode, QR Code, and Animations. Manual browser verification with Freighter is still pending.
+All core and bonus scope is implemented, manually verified end-to-end with a real Freighter extension on Stellar Testnet, and merged into `main`. Screenshots are captured and the README has been updated with embedded images. The repo is pushed to GitHub at https://github.com/tommycuong1904/lumenflow and is ready for submission.
 
 ## Scope
 - Connect Freighter
@@ -47,7 +47,7 @@ Core Stellar integration branch is active. Wallet, balance, and send-payment MVP
 - [x] Add final screenshots to docs/screenshots/
 
 ## Current Working Branch
-docs/screenshots (branched from main, which already has feat/ux-enhancements merged in)
+main (feature and screenshot branches were merged in and then deleted locally after merge; `main` is pushed to `origin/main` on GitHub)
 
 ## Blockers
 - None. All required and bonus screenshots are captured; the branch is ready for final submission review.
@@ -88,3 +88,6 @@ docs/screenshots (branched from main, which already has feat/ux-enhancements mer
 - Investigated a user report that clicking Connect after clearing browser cache still skips the Freighter approval popup: confirmed this is expected Freighter behavior, not a LumenFlow bug — Freighter's per-site "allowed" permission lives in the extension's own storage, independent of the website's cache/localStorage, so it survives a site-side cache clear. Decided (per user) to leave this as-is for now; no code change made.
 - User completed full manual verification with a real Freighter extension on Stellar Testnet: connect/approve, balance display, copy address with tooltip, QR code render, send payment with sign flow, full receipt (Status/Hash/Amount/Recipient/Memo/Stellar Expert link), Address Book (auto-save, Use, manual add, Remove), and wallet session persistence across F5/new tab (and correctly staying disconnected after Disconnect). All 8 checks passed with no issues reported.
 - Added final submission screenshots to `docs/screenshots/` (9 total): the 4 required (wallet connected, balance, send form filled, transaction success with full receipt), 2 recommended (Friendbot-unfunded state, disconnected state), and 3 covering bonus features (dark/light mode, wallet QR code, Address Book). Fixed a double-extension filename (`08-wallet-qr-code.png.png` → `.png`) before committing. Dropped the originally-proposed 10th screenshot (separate "full receipt" shot) since it fully overlaps with `04-transaction-success.png`, which already shows Status/Hash/Amount/Recipient/Stellar Expert link. Note: the `04` screenshot's form panel shows an in-progress "Thanks" memo for a *different, not-yet-submitted* draft — the actual submitted transaction shown in the receipt had no memo, so the Memo field doesn't appear in that shot (expected, since memo is optional; not a bug).
+- Merged `feat/ux-enhancements` and then `docs/screenshots` into `main` (both `--no-ff`), verified `npm run build` + HTTP 200 on `main` after each merge, then deleted all now-fully-merged local branches (`feat/stellar-core-integration`, `feat/shadcn-ui-redesign`, `feat/lvl1-wallet-ux-polish`, `feat/ux-enhancements`, `docs/screenshots`) — `git branch -d` confirmed each had zero unique commits left relative to `main`.
+- Created a new private GitHub repo (`tommycuong1904/lumenflow`) via `gh repo create` and pushed `main` as `origin/main`. Verified via `gh api` that the repo exists, is private, and its file listing matches the local tree.
+- Rewrote `README.md`'s Current Status, Requirements Coverage, and Notes sections to reflect the completed state (no more "pending verification" language), added a "Bonus Features" subsection, embedded all 9 screenshots as a Markdown table gallery (Core flow / Additional states / Bonus features groupings) instead of just linking to the folder, updated the Project Structure tree to include `AddressBook.tsx`, `ThemeToggle.tsx`, `WalletQrCode.tsx`, the `ui/` primitives, and `addressBook.ts`, and added a Repository link to the GitHub URL.
