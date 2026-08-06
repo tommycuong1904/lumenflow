@@ -44,13 +44,13 @@ Core Stellar integration branch is active. Wallet, balance, and send-payment MVP
 - [x] Add Address Book bonus feature (localStorage, add/remove/use, auto-save on send)
 - [x] Add wallet session persistence across refresh/new tab (localStorage flag + silent reconnect)
 - [x] Manual browser verification with Freighter on Testnet (all 8 checks passed: connect, balance, copy address, QR code, send payment, receipt fields, Address Book, session persistence)
-- [ ] Add final screenshots to docs/screenshots/
+- [x] Add final screenshots to docs/screenshots/
 
 ## Current Working Branch
-feat/ux-enhancements
+docs/screenshots (branched from main, which already has feat/ux-enhancements merged in)
 
 ## Blockers
-- None currently. Freighter manual verification is complete; only final screenshots remain.
+- None. All required and bonus screenshots are captured; the branch is ready for final submission review.
 
 ## Progress Log
 - Scaffolded `lumenflow` with Next.js + TypeScript + Tailwind.
@@ -87,3 +87,4 @@ feat/ux-enhancements
 - Added wallet session persistence: on successful connect, a `lumenflow_wallet_session` flag is written to `localStorage`; on mount, if the flag is present, `handleConnect` silently re-runs (no debug logging, no click counters) to restore `wallet` state without prompting Freighter again (Freighter only re-prompts if access was actually revoked). Disconnect clears the flag. Confirmed via code review + build only — needs a real Freighter session to verify the F5/new-tab restore behavior end to end.
 - Investigated a user report that clicking Connect after clearing browser cache still skips the Freighter approval popup: confirmed this is expected Freighter behavior, not a LumenFlow bug — Freighter's per-site "allowed" permission lives in the extension's own storage, independent of the website's cache/localStorage, so it survives a site-side cache clear. Decided (per user) to leave this as-is for now; no code change made.
 - User completed full manual verification with a real Freighter extension on Stellar Testnet: connect/approve, balance display, copy address with tooltip, QR code render, send payment with sign flow, full receipt (Status/Hash/Amount/Recipient/Memo/Stellar Expert link), Address Book (auto-save, Use, manual add, Remove), and wallet session persistence across F5/new tab (and correctly staying disconnected after Disconnect). All 8 checks passed with no issues reported.
+- Added final submission screenshots to `docs/screenshots/` (9 total): the 4 required (wallet connected, balance, send form filled, transaction success with full receipt), 2 recommended (Friendbot-unfunded state, disconnected state), and 3 covering bonus features (dark/light mode, wallet QR code, Address Book). Fixed a double-extension filename (`08-wallet-qr-code.png.png` → `.png`) before committing. Dropped the originally-proposed 10th screenshot (separate "full receipt" shot) since it fully overlaps with `04-transaction-success.png`, which already shows Status/Hash/Amount/Recipient/Stellar Expert link. Note: the `04` screenshot's form panel shows an in-progress "Thanks" memo for a *different, not-yet-submitted* draft — the actual submitted transaction shown in the receipt had no memo, so the Memo field doesn't appear in that shot (expected, since memo is optional; not a bug).
