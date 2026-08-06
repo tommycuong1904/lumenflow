@@ -41,7 +41,7 @@ Core Stellar integration branch is active. Wallet, balance, and send-payment MVP
 - [ ] Manual browser verification with Freighter on Testnet
 
 ## Current Working Branch
-feat/theme-qr-animations
+feat/ux-enhancements
 
 ## Blockers
 - This verification environment does not include the Freighter browser extension, so wallet connect/sign flow cannot be fully exercised here.
