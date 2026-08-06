@@ -38,6 +38,36 @@
   --sidebar-ring: #8b5cf6;
 }
 
+.light {
+  --background: #f6f5fb;
+  --foreground: #14121f;
+  --card: #ffffff;
+  --card-foreground: #14121f;
+  --popover: #ffffff;
+  --popover-foreground: #14121f;
+  --primary: #6d28d9;
+  --primary-foreground: #ffffff;
+  --secondary: #ece9f7;
+  --secondary-foreground: #26243a;
+  --muted: #ece9f7;
+  --muted-foreground: #5c5a72;
+  --accent: #ece9f7;
+  --accent-foreground: #14121f;
+  --destructive: #dc2626;
+  --destructive-foreground: #fff5f5;
+  --border: #ded9ef;
+  --input: #ded9ef;
+  --ring: #6d28d9;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #14121f;
+  --sidebar-primary: #6d28d9;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ece9f7;
+  --sidebar-accent-foreground: #14121f;
+  --sidebar-border: #ded9ef;
+  --sidebar-ring: #6d28d9;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -94,11 +124,12 @@ body {
 
 body {
   margin: 0;
-  background-color: #0b0b12;
+  background-color: var(--background);
   background-image: radial-gradient(circle at top left, rgba(139, 92, 246, 0.12), transparent 30%);
   background-repeat: no-repeat;
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 a {

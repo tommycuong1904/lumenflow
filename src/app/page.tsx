@@ -8,6 +8,7 @@ import { WalletCard } from "@/components/WalletCard";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { NETWORK_PASSPHRASE } from "@/lib/stellar/constants";
 import { getXlmBalance } from "@/lib/stellar/horizon";
 import { submitSignedTransaction } from "@/lib/stellar/submit";
@@ -279,7 +280,10 @@ export default function Home() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-8 sm:px-8 lg:px-10">
-      <section className="relative overflow-hidden rounded-[32px] border border-border/80 bg-card/90 shadow-[0_32px_120px_rgba(4,8,20,0.4)] backdrop-blur-sm">
+      <div className="mb-4 flex justify-end">
+        <ThemeToggle />
+      </div>
+      <section className="relative overflow-hidden rounded-[32px] border border-border/80 bg-card/90 shadow-[0_32px_120px_rgba(4,8,20,0.4)] backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
         <div className="relative grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.4fr_0.8fr] lg:px-10 lg:py-10">
           <div className="space-y-5">
             <Badge variant="outline" className="border-primary/20 bg-primary/8 px-3 py-1 text-[11px] tracking-[0.24em] text-primary uppercase">
@@ -326,11 +330,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mt-8 grid gap-8 lg:grid-cols-2">
+      <section className="mt-8 grid gap-8 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:100ms]">
         <WalletCard
           wallet={wallet}
-          debugEvents={walletDebug}
-          diagnostics={{ mounted, reactClickCount, nativeClickCount, lastNativeClickAt }}
           onConnect={handleConnect}
           onDisconnect={handleDisconnect}
         />
@@ -341,7 +343,7 @@ export default function Home() {
         />
       </section>
 
-      <section className="mt-8 grid gap-8 lg:grid-cols-2">
+      <section className="mt-8 grid gap-8 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:200ms]">
         <SendPaymentForm
           wallet={wallet}
           form={form}

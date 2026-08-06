@@ -4,13 +4,16 @@
 Deliver a submission-ready Stellar White Belt app.
 
 ## Current Status
-Core Stellar integration branch is active. Wallet, balance, and send-payment MVP flows are scaffolded in the UI and helper layer. The app has received a polish pass, a challenge-oriented README, and a screenshot capture framework. A follow-up UI pass integrated shadcn/ui primitives and added an explicit transaction review/confirmation step before signing. Manual browser verification with Freighter is still pending.
+Core Stellar integration branch is active. Wallet, balance, and send-payment MVP flows are scaffolded in the UI and helper layer. The app has received a polish pass, a challenge-oriented README, and a screenshot capture framework. A follow-up UI pass integrated shadcn/ui primitives and added an explicit transaction review/confirmation step before signing. Scope was then intentionally expanded beyond strict White Belt minimums to pick up bonus points from the referenced starter-template rubric (see `docs/reference-starter-template.md`): Dark/Light Mode, QR Code, and Animations. Manual browser verification with Freighter is still pending.
 
 ## Scope
 - Connect Freighter
 - Display XLM balance
 - Send XLM on Testnet
 - Show transaction feedback
+- Dark/Light theme toggle (bonus)
+- Wallet address QR code (bonus)
+- UI entrance/transition animations (bonus)
 
 ## Out of Scope
 - Extra product modules
@@ -31,11 +34,14 @@ Core Stellar integration branch is active. Wallet, balance, and send-payment MVP
 - [x] Create screenshot checklist and storage path
 - [x] Integrate shadcn/ui primitives (Badge, Card, Separator)
 - [x] Add explicit review/confirm step before Freighter signing
+- [x] Add Dark/Light mode toggle (next-themes + `.light` CSS variables)
+- [x] Add wallet address QR code (qrcode.react)
+- [x] Add entrance/transition animations across main sections
 - [ ] Add final screenshots to docs/screenshots/
 - [ ] Manual browser verification with Freighter on Testnet
 
 ## Current Working Branch
-feat/stellar-core-integration
+feat/theme-qr-animations
 
 ## Blockers
 - This verification environment does not include the Freighter browser extension, so wallet connect/sign flow cannot be fully exercised here.
@@ -56,3 +62,9 @@ feat/stellar-core-integration
 - Added a copy-address utility and a Stellar Expert link shown after successful transaction submission.
 - Updated README with the production preview IP (`http://156.67.24.44:3002/`) and restored the pending-Freighter-verification note so submission status stays accurate.
 - Verified with a successful `npm run build` (Turbopack, TypeScript clean) after the polish pass.
+- Reviewed a shared community starter-template README (saved as `docs/reference-starter-template.md`) that scores UI/UX with bonus points; decided to intentionally expand LumenFlow's scope to pick up three bonus items without touching Stellar/Freighter logic.
+- Added Dark/Light mode: `next-themes` `ThemeProvider` in the root layout, a `.light` CSS variable block in `globals.css`, and a `ThemeToggle` component. Verified in-browser that the `light` class toggles on `<html>` and colors switch correctly in both directions with no console errors.
+- Added wallet address QR code: `WalletQrCode` component (via `qrcode.react`) rendered inside the wallet card once connected, with a show/hide toggle and expand animation.
+- Added entrance animations (`animate-in fade-in slide-in-from-bottom-2`, staggered delays) to the hero and main content sections, plus color-transition easing when switching themes.
+- Removed the "Freighter debug trace" / "Client diagnostics" UI blocks from `WalletCard` (kept the underlying `console.log` calls for devtools debugging) since they were dev-only scaffolding with no submission value.
+- Verified with a successful `npm run build` after the bonus-feature pass; restarted the local server on port 3002 and confirmed both dark and light themes render correctly in-browser. QR code visual verification is still blocked on Freighter (only renders once wallet is connected).

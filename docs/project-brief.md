@@ -21,6 +21,9 @@ LumenFlow is a simple Stellar Testnet payment app focused on a clean wallet-to-p
 - XLM payment form
 - transaction result state and hash/confirmation
 - README and submission screenshots
+- Dark/Light mode toggle (bonus)
+- QR code for wallet address (bonus)
+- UI animations/transitions polish (bonus)
 
 ## Out of scope
 - multiple wallet providers
@@ -39,3 +42,6 @@ LumenFlow is a simple Stellar Testnet payment app focused on a clean wallet-to-p
 - XLM testnet payment succeeds
 - success/failure states render clearly
 - submission-ready README and screenshots can be produced
+- dark/light mode toggle works and persists user choice
+- QR code renders for the connected wallet address
+- key interactions have smooth, non-distracting animation

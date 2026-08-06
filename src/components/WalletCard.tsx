@@ -10,19 +10,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { truncateAddress } from "@/lib/utils/format";
-import type { FreighterDebugEvent, WalletState } from "@/lib/stellar/types";
+import type { WalletState } from "@/lib/stellar/types";
+import { WalletQrCode } from "@/components/WalletQrCode";
 
 type WalletCardProps = {
   wallet: WalletState;
-  debugEvents: FreighterDebugEvent[];
-  diagnostics: {
-    mounted: boolean;
-    reactClickCount: number;
-    nativeClickCount: number;
-    lastNativeClickAt: string | null;
-  };
   onConnect: () => Promise<void>;
   onDisconnect: () => void;
 };
@@ -36,7 +29,7 @@ function StatusPill({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function WalletCard({ wallet, debugEvents, diagnostics, onConnect, onDisconnect }: WalletCardProps) {
+export function WalletCard({ wallet, onConnect, onDisconnect }: WalletCardProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
 
   useEffect(() => {
@@ -71,7 +64,7 @@ export function WalletCard({ wallet, debugEvents, diagnostics, onConnect, onDisc
           </Badge>
           <CardTitle className="text-2xl font-semibold text-foreground">Freighter connection</CardTitle>
           <CardDescription className="max-w-xl text-sm leading-6 text-muted-foreground">
-            Connect your Stellar wallet, confirm you are on Testnet, and keep diagnostics visible while validating the White Belt flow.
+            Connect your Stellar wallet and confirm you are on Testnet before checking balance or sending a payment.
           </CardDescription>
         </div>
         <CardAction className="w-full sm:w-auto">
@@ -121,20 +114,14 @@ export function WalletCard({ wallet, debugEvents, diagnostics, onConnect, onDisc
           <StatusPill label="Network" value={wallet.network ?? "Unknown"} />
         </div>
 
+        {wallet.connected && wallet.publicKey ? (
+          <WalletQrCode address={wallet.publicKey} />
+        ) : null}
+
         <Alert className="rounded-2xl border-border/80 bg-secondary/35">
           <AlertTitle className="text-sm font-medium text-foreground">Connection checklist</AlertTitle>
           <AlertDescription className="text-sm leading-6 text-muted-foreground">
             Install Freighter, switch it to Stellar Testnet, then connect here to unlock balance refresh and payment review.
-          </AlertDescription>
-        </Alert>
-
-        <Alert className="rounded-2xl border-primary/15 bg-primary/6">
-          <AlertTitle className="text-sm font-medium text-foreground">Client diagnostics</AlertTitle>
-          <AlertDescription className="mt-2 font-mono text-xs leading-6 text-muted-foreground">
-            <div>mounted: {diagnostics.mounted ? "yes" : "no"}</div>
-            <div>reactClickCount: {diagnostics.reactClickCount}</div>
-            <div>nativeClickCount: {diagnostics.nativeClickCount}</div>
-            <div>lastNativeClickAt: {diagnostics.lastNativeClickAt ?? "none"}</div>
           </AlertDescription>
         </Alert>
 
@@ -143,25 +130,6 @@ export function WalletCard({ wallet, debugEvents, diagnostics, onConnect, onDisc
             <AlertTitle className="text-sm font-medium">Wallet error</AlertTitle>
             <AlertDescription className="text-sm leading-6">{wallet.error}</AlertDescription>
           </Alert>
-        ) : null}
-
-        {debugEvents.length ? (
-          <div className="rounded-2xl border border-border/80 bg-secondary/30 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-medium text-foreground">Freighter debug trace</p>
-              <Badge variant="outline" className="border-primary/20 bg-primary/8 text-primary">
-                {debugEvents.length} events
-              </Badge>
-            </div>
-            <Separator className="my-4 bg-border/70" />
-            <ul className="space-y-3">
-              {debugEvents.map((debugEvent, index) => (
-                <li key={`${debugEvent.step}-${index}`} className="rounded-2xl border border-border/70 bg-background/40 px-3 py-3 font-mono text-xs leading-6 text-muted-foreground">
-                  <span className="font-semibold text-primary">{debugEvent.step}:</span> {debugEvent.detail}
-                </li>
-              ))}
-            </ul>
-          </div>
         ) : null}
       </CardContent>
     </Card>
