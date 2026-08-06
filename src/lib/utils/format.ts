@@ -15,3 +15,9 @@ export function shortHash(hash: string | null): string {
   if (!hash) return "";
   return truncateAddress(hash, 10, 8);
 }
+
+export function toTitleCase(value: string | null): string {
+  if (!value) return "";
+  const lower = value.toLowerCase();
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
+}

@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { truncateAddress } from "@/lib/utils/format";
+import { toTitleCase, truncateAddress } from "@/lib/utils/format";
 import type { WalletState } from "@/lib/stellar/types";
 import { WalletQrCode } from "@/components/WalletQrCode";
 
@@ -111,7 +111,7 @@ export function WalletCard({ wallet, onConnect, onDisconnect }: WalletCardProps)
               ) : null}
             </div>
           </div>
-          <StatusPill label="Network" value={wallet.network ?? "Unknown"} />
+          <StatusPill label="Network" value={wallet.network ? toTitleCase(wallet.network) : "Unknown"} />
         </div>
 
         {wallet.connected && wallet.publicKey ? (
