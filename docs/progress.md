@@ -4,13 +4,16 @@
 Deliver a submission-ready Stellar White Belt app.
 
 ## Current Status
-Core Stellar integration branch is active. Wallet, balance, and send-payment MVP flows are scaffolded in the UI and helper layer. The app has now received an additional polish pass, a challenge-oriented README, and a screenshot capture framework. Manual browser verification with Freighter is still pending.
+Core Stellar integration branch is active. Wallet, balance, and send-payment MVP flows are scaffolded in the UI and helper layer. The app has received a polish pass, a challenge-oriented README, and a screenshot capture framework. A follow-up UI pass integrated shadcn/ui primitives and added an explicit transaction review/confirmation step before signing. Scope was then intentionally expanded beyond strict White Belt minimums to pick up bonus points from the referenced starter-template rubric (see `docs/reference-starter-template.md`): Dark/Light Mode, QR Code, and Animations. Manual browser verification with Freighter is still pending.
 
 ## Scope
 - Connect Freighter
 - Display XLM balance
 - Send XLM on Testnet
 - Show transaction feedback
+- Dark/Light theme toggle (bonus)
+- Wallet address QR code (bonus)
+- UI entrance/transition animations (bonus)
 
 ## Out of Scope
 - Extra product modules
@@ -29,14 +32,25 @@ Core Stellar integration branch is active. Wallet, balance, and send-payment MVP
 - [x] Polish UX and error states
 - [x] Prepare README baseline for submission
 - [x] Create screenshot checklist and storage path
+- [x] Integrate shadcn/ui primitives (Badge, Card, Separator)
+- [x] Add explicit review/confirm step before Freighter signing
+- [x] Add Dark/Light mode toggle (next-themes + `.light` CSS variables)
+- [x] Add wallet address QR code (qrcode.react)
+- [x] Add entrance/transition animations across main sections
+- [x] Fix Copy Address clipboard fallback for non-secure (HTTP) origins
+- [x] Fix content overflow in TxResultCard's status Alert
+- [x] Expand transaction receipt with Amount, Recipient, Memo
+- [x] Remove duplicated/redundant transaction hash displays
+- [x] Add Address Book bonus feature (localStorage, add/remove/use, auto-save on send)
+- [x] Add wallet session persistence across refresh/new tab (localStorage flag + silent reconnect)
+- [x] Manual browser verification with Freighter on Testnet (all 8 checks passed: connect, balance, copy address, QR code, send payment, receipt fields, Address Book, session persistence)
 - [ ] Add final screenshots to docs/screenshots/
-- [ ] Manual browser verification with Freighter on Testnet
 
 ## Current Working Branch
-feat/stellar-core-integration
+feat/ux-enhancements
 
 ## Blockers
-- This verification environment does not include the Freighter browser extension, so wallet connect/sign flow cannot be fully exercised here.
+- None currently. Freighter manual verification is complete; only final screenshots remain.
 
 ## Progress Log
 - Scaffolded `lumenflow` with Next.js + TypeScript + Tailwind.
@@ -49,3 +63,27 @@ feat/stellar-core-integration
 - Browser inspection confirmed the current environment lacks `window.freighterApi`, so full wallet interaction remains pending on a browser that has Freighter installed.
 - Added a README tailored to White Belt submission requirements and polished the UI copy to make screenshot capture and challenge review clearer.
 - Added `docs/screenshots/README.md` and `docs/screenshots/.gitkeep` so final submission images have a clear place and naming convention.
+- Integrated shadcn/ui (Badge, Card, Separator) with supporting deps (`@base-ui/react`, `class-variance-authority`, `lucide-react`, `tailwind-merge`).
+- Added an explicit review/confirmation step before Freighter signing: form submit now shows a review state, with separate confirm and cancel actions instead of signing immediately.
+- Added a copy-address utility and a Stellar Expert link shown after successful transaction submission.
+- Updated README with the production preview IP (`http://156.67.24.44:3002/`) and restored the pending-Freighter-verification note so submission status stays accurate.
+- Verified with a successful `npm run build` (Turbopack, TypeScript clean) after the polish pass.
+- Reviewed a shared community starter-template README (saved as `docs/reference-starter-template.md`) that scores UI/UX with bonus points; decided to intentionally expand LumenFlow's scope to pick up three bonus items without touching Stellar/Freighter logic.
+- Added Dark/Light mode: `next-themes` `ThemeProvider` in the root layout, a `.light` CSS variable block in `globals.css`, and a `ThemeToggle` component. Verified in-browser that the `light` class toggles on `<html>` and colors switch correctly in both directions with no console errors.
+- Added wallet address QR code: `WalletQrCode` component (via `qrcode.react`) rendered inside the wallet card once connected, with a show/hide toggle and expand animation.
+- Added entrance animations (`animate-in fade-in slide-in-from-bottom-2`, staggered delays) to the hero and main content sections, plus color-transition easing when switching themes.
+- Removed the "Freighter debug trace" / "Client diagnostics" UI blocks from `WalletCard` (kept the underlying `console.log` calls for devtools debugging) since they were dev-only scaffolding with no submission value.
+- Verified with a successful `npm run build` after the bonus-feature pass; restarted the local server on port 3002 and confirmed both dark and light themes render correctly in-browser. QR code visual verification is still blocked on Freighter (only renders once wallet is connected).
+- Changed the Connection/Network status grid in `WalletCard` from a 2-column layout to a single full-width stacked column per user request; verified in-browser.
+- Fixed Copy Address on non-secure (HTTP, non-localhost) origins: `navigator.clipboard.writeText` silently fails outside a secure context, so added a `document.execCommand("copy")` fallback via a hidden textarea. Copy feedback now shows as a small floating "Copied!" tooltip above the button (auto-hides after 1.8s) instead of changing the button's own label.
+- Changed the Recipient/Amount/Memo confirm-step grid in `SendPaymentForm` from 3 columns to a single full-width stacked column per user request.
+- Fixed content overflow in `TxResultCard`'s status `Alert`: shadcn/ui's base `Alert` uses CSS grid without `min-w-0` on child slots, so long status text and the 56-char transaction hash could overflow the card. Added `min-w-0`/`overflow-hidden`/`break-words`/`break-all` locally in `TxResultCard` (did not touch the shared `ui/alert.tsx` base component).
+- Removed the duplicated transaction hash from the success message string (was embedded via template literal); the hash now only appears in its own dedicated field.
+- Expanded the transaction result receipt to include Amount, Recipient, and Memo (when provided) alongside Status, Tx hash, and the Stellar Expert link. Added `amount`/`recipient`/`memo` as optional fields on `TxState`, snapshotted at submit-success time (not re-read from the live form) so the receipt stays stable even if the form changes afterward.
+- Removed the redundant shortened-hash `Badge` from `TxResultCard` (kept only the full hash, per user request) and cleaned up the now-unused `shortHash` import.
+- Synced `docs/reference-starter-template.md`'s bonus-feature checklist with what's actually implemented (Dark/Light Mode, QR Code, Animations now marked done) and added a running bonus-score estimate (55/100 achievable, remaining 45 pts are out of White Belt Level 1 scope).
+- Verified all of the above with a successful `npm run build` after each change; restarted the local server on port 3002 and confirmed HTTP 200 after every restart.
+- Added an Address Book bonus feature (`src/lib/stellar/addressBook.ts` + `src/components/AddressBook.tsx`): localStorage-backed (`lumenflow_address_book`) list of saved addresses with labels, shown above the Recipient field in `SendPaymentForm`. Supports add/remove by hand, a "Use" button to fill the recipient field, and auto-saves the recipient after a successful send.
+- Added wallet session persistence: on successful connect, a `lumenflow_wallet_session` flag is written to `localStorage`; on mount, if the flag is present, `handleConnect` silently re-runs (no debug logging, no click counters) to restore `wallet` state without prompting Freighter again (Freighter only re-prompts if access was actually revoked). Disconnect clears the flag. Confirmed via code review + build only — needs a real Freighter session to verify the F5/new-tab restore behavior end to end.
+- Investigated a user report that clicking Connect after clearing browser cache still skips the Freighter approval popup: confirmed this is expected Freighter behavior, not a LumenFlow bug — Freighter's per-site "allowed" permission lives in the extension's own storage, independent of the website's cache/localStorage, so it survives a site-side cache clear. Decided (per user) to leave this as-is for now; no code change made.
+- User completed full manual verification with a real Freighter extension on Stellar Testnet: connect/approve, balance display, copy address with tooltip, QR code render, send payment with sign flow, full receipt (Status/Hash/Amount/Recipient/Memo/Stellar Expert link), Address Book (auto-save, Use, manual add, Remove), and wallet session persistence across F5/new tab (and correctly staying disconnected after Disconnect). All 8 checks passed with no issues reported.

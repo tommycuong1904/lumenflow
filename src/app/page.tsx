@@ -5,6 +5,10 @@ import { BalanceCard } from "@/components/BalanceCard";
 import { SendPaymentForm } from "@/components/SendPaymentForm";
 import { TxResultCard } from "@/components/TxResultCard";
 import { WalletCard } from "@/components/WalletCard";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { NETWORK_PASSPHRASE } from "@/lib/stellar/constants";
 import { getXlmBalance } from "@/lib/stellar/horizon";
 import { submitSignedTransaction } from "@/lib/stellar/submit";
@@ -47,12 +51,21 @@ const initialFormState: SendFormState = {
   memo: "",
 };
 
+const readinessPoints = [
+  "Freighter connect and disconnect",
+  "XLM balance visibility on Testnet",
+  "Signed Stellar payment submission",
+];
+
+const WALLET_SESSION_KEY = "lumenflow_wallet_session";
+
 export default function Home() {
   const [wallet, setWallet] = useState<WalletState>(initialWalletState);
   const [balance, setBalance] = useState<BalanceState>(initialBalanceState);
   const [tx, setTx] = useState<TxState>(initialTxState);
   const [form, setForm] = useState<SendFormState>(initialFormState);
   const [walletDebug, setWalletDebug] = useState<FreighterDebugEvent[]>([]);
+  const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [reactClickCount, setReactClickCount] = useState(0);
   const [nativeClickCount, setNativeClickCount] = useState(0);
@@ -62,6 +75,14 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
+
+    const hadSession = window.localStorage.getItem(WALLET_SESSION_KEY) === "connected";
+    if (!hadSession) return;
+
+    // Silently attempt to restore the wallet session without prompting the
+    // user again — Freighter only re-prompts if access was revoked or the
+    // account changed, otherwise getAddress() resolves immediately.
+    void handleConnect({ silent: true });
   }, []);
 
   useEffect(() => {
@@ -98,26 +119,36 @@ export default function Home() {
       setBalance((current) => ({
         ...current,
         loading: false,
-        error: "Failed to fetch account balance from Horizon.",
+        error: "Could not refresh the Testnet balance right now. Please try again in a moment.",
       }));
     }
   }
 
-  async function handleConnect() {
+  async function handleConnect(options?: { silent?: boolean }) {
+    const silent = options?.silent ?? false;
     const clickedAt = new Date().toISOString();
-    setReactClickCount((count) => count + 1);
-    setWalletDebug([{ step: "click", detail: `Connect clicked at ${clickedAt}` }]);
-    setWallet((current) => ({ ...current, loading: true, error: null }));
-    console.log("[LumenFlow][ReactHandleConnect]", clickedAt);
+    if (!silent) {
+      setReactClickCount((count) => count + 1);
+      setWalletDebug([{ step: "click", detail: `Connect clicked at ${clickedAt}` }]);
+    }
+    setWallet((current) => ({ ...current, loading: !silent, error: null }));
+    console.log("[LumenFlow][ReactHandleConnect]", clickedAt, silent ? "(silent restore)" : "");
 
     try {
       const result = await connectWallet();
-      if (result.debug) {
+      if (result.debug && !silent) {
         setWalletDebug((current) => [...current, ...result.debug]);
         console.log("[LumenFlow][FreighterDebug]", result.debug);
       }
 
       if ("error" in result) {
+        if (silent) {
+          // Session could not be silently restored (revoked access, no
+          // Freighter, etc.) — clear the stale session flag and stay idle.
+          window.localStorage.removeItem(WALLET_SESSION_KEY);
+          setWallet(initialWalletState);
+          return;
+        }
         setWallet((current) => ({
           ...current,
           loading: false,
@@ -128,17 +159,21 @@ export default function Home() {
       }
 
       if (!result.isTestnet || result.networkPassphrase !== NETWORK_PASSPHRASE) {
+        if (silent) {
+          window.localStorage.removeItem(WALLET_SESSION_KEY);
+        }
         setWallet({
           connected: false,
           publicKey: null,
           network: result.network,
           networkPassphrase: result.networkPassphrase,
           loading: false,
-          error: "Please switch Freighter to Stellar Testnet before using LumenFlow.",
+          error: silent ? null : "Please switch Freighter to Stellar Testnet before using LumenFlow.",
         });
         return;
       }
 
+      window.localStorage.setItem(WALLET_SESSION_KEY, "connected");
       setWallet({
         connected: true,
         publicKey: result.address,
@@ -150,7 +185,12 @@ export default function Home() {
 
       await refreshBalance(result.address);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unexpected Freighter connection error.";
+      if (silent) {
+        window.localStorage.removeItem(WALLET_SESSION_KEY);
+        setWallet(initialWalletState);
+        return;
+      }
+      const message = error instanceof Error ? error.message : "Could not connect to Freighter right now. Please try again.";
       setWallet((current) => ({
         ...current,
         loading: false,
@@ -163,19 +203,22 @@ export default function Home() {
   }
 
   function handleDisconnect() {
+    window.localStorage.removeItem(WALLET_SESSION_KEY);
     setWallet(initialWalletState);
     setBalance(initialBalanceState);
     setTx(initialTxState);
     setForm(initialFormState);
     setWalletDebug([]);
+    setIsConfirmingPayment(false);
     setReactClickCount(0);
     setNativeClickCount(0);
     setLastNativeClickAt(null);
   }
 
-  async function handleSubmit() {
+  function handleSubmit() {
     if (!wallet.connected || !wallet.publicKey) {
       setTx({ status: "error", hash: null, message: "Connect Freighter before sending a payment." });
+      setIsConfirmingPayment(false);
       return;
     }
 
@@ -185,21 +228,48 @@ export default function Home() {
         hash: null,
         message: "Fund your Testnet account with Friendbot before sending XLM.",
       });
+      setIsConfirmingPayment(false);
       return;
     }
 
     if (!isValidPublicKey(form.recipient)) {
       setTx({ status: "error", hash: null, message: "Recipient address is invalid." });
+      setIsConfirmingPayment(false);
       return;
     }
 
     if (!isValidAmount(form.amount)) {
       setTx({ status: "error", hash: null, message: "Enter a valid positive XLM amount." });
+      setIsConfirmingPayment(false);
+      return;
+    }
+
+    setTx({
+      status: "idle",
+      hash: null,
+      message: "Payment details look valid. Review them below, then confirm to open Freighter.",
+    });
+    setIsConfirmingPayment(true);
+  }
+
+  function handleCancelConfirmation() {
+    setIsConfirmingPayment(false);
+    setTx((current) => ({
+      ...current,
+      status: current.status === "error" ? "error" : "idle",
+      message: current.status === "error" ? current.message : "Confirmation cancelled. You can update the payment details and review again.",
+    }));
+  }
+
+  async function handleConfirmSubmit() {
+    if (!wallet.connected || !wallet.publicKey) {
+      setTx({ status: "error", hash: null, message: "Connect Freighter before sending a payment." });
+      setIsConfirmingPayment(false);
       return;
     }
 
     try {
-      setTx({ status: "validating", hash: null, message: "Preparing Stellar payment transaction..." });
+      setTx({ status: "validating", hash: null, message: "Preparing the Stellar Testnet payment for signing..." });
 
       const transactionXdr = await createPaymentTransaction({
         sourcePublicKey: wallet.publicKey,
@@ -208,72 +278,92 @@ export default function Home() {
         memo: form.memo,
       });
 
-      setTx({ status: "signing", hash: null, message: "Confirm the transaction in Freighter." });
+      setTx({ status: "signing", hash: null, message: "Review the request in Freighter and approve the signature to continue." });
 
       const signedResult = await signFreighterTransaction(transactionXdr, wallet.publicKey);
       if ("error" in signedResult) {
         setTx({ status: "error", hash: null, message: signedResult.error });
+        setIsConfirmingPayment(false);
         return;
       }
 
-      setTx({ status: "submitting", hash: null, message: "Submitting transaction to Stellar Testnet..." });
+      setTx({ status: "submitting", hash: null, message: "Submitting the signed payment to Stellar Testnet..." });
 
       const submission = await submitSignedTransaction(signedResult.signedTxXdr);
 
       setTx({
         status: "success",
         hash: submission.hash ?? null,
-        message: submission.hash
-          ? `Transaction submitted successfully. Hash: ${submission.hash}`
-          : "Transaction submitted successfully.",
+        message: "Transaction submitted successfully.",
+        amount: form.amount.trim(),
+        recipient: form.recipient.trim(),
+        memo: form.memo.trim() || null,
       });
+      setIsConfirmingPayment(false);
 
       await refreshBalance(wallet.publicKey);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Transaction failed.";
+      const message = error instanceof Error ? error.message : "The payment could not be completed on Stellar Testnet.";
       setTx({ status: "error", hash: null, message });
+      setIsConfirmingPayment(false);
     }
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-10 sm:px-10 lg:px-12">
-      <section className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
-        <div className="space-y-6 rounded-[32px] border border-white/10 bg-[var(--color-panel)] p-8 shadow-[0_24px_80px_rgba(7,10,22,0.45)]">
-          <div className="inline-flex items-center rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">
-            Stellar White Belt MVP
+    <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-8 sm:px-8 lg:px-10">
+      <div className="mb-4 flex justify-end">
+        <ThemeToggle />
+      </div>
+      <section className="relative overflow-hidden rounded-[32px] border border-border/80 bg-card/90 shadow-[0_32px_120px_rgba(4,8,20,0.4)] backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="relative grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.4fr_0.8fr] lg:px-10 lg:py-10">
+          <div className="space-y-5">
+            <Badge variant="outline" className="border-primary/20 bg-primary/8 px-3 py-1 text-[11px] tracking-[0.24em] text-primary uppercase">
+              Stellar White Belt
+            </Badge>
+            <div className="space-y-4">
+              <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+                LumenFlow
+              </h1>
+              <p className="max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+                A focused Stellar Testnet payment utility for connecting Freighter, checking XLM balance, and validating a signed transfer flow without the noise of a full crypto dashboard.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Badge variant="outline" className="border-border bg-secondary/45 px-3 py-1 text-sm text-secondary-foreground">
+                Freighter wallet
+              </Badge>
+              <Badge variant="outline" className="border-border bg-secondary/45 px-3 py-1 text-sm text-secondary-foreground">
+                Testnet only
+              </Badge>
+              <Badge variant="outline" className="border-border bg-secondary/45 px-3 py-1 text-sm text-secondary-foreground">
+                Native XLM
+              </Badge>
+            </div>
           </div>
-          <div className="space-y-4">
-            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-white sm:text-5xl">LumenFlow</h1>
-            <p className="max-w-3xl text-base leading-8 text-slate-300 sm:text-lg">
-              Connect Freighter, inspect your Stellar Testnet XLM balance, and send a native XLM payment with clear transaction feedback.
-            </p>
-          </div>
-        </div>
 
-        <aside className="space-y-4 rounded-[32px] border border-white/10 bg-[var(--color-panel-alt)] p-8 shadow-[0_16px_50px_rgba(5,9,20,0.35)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-violet-200/80">Network rules</p>
-          <div className="space-y-3 text-sm leading-7 text-slate-300">
-            <p>
-              Wallet target: <span className="font-semibold text-white">Freighter</span>
-            </p>
-            <p>
-              Network: <span className="font-semibold text-white">Stellar Testnet</span>
-            </p>
-            <p>
-              Asset: <span className="font-semibold text-white">Native XLM only</span>
-            </p>
-            <p>
-              Funding helper: <span className="font-semibold text-white">Friendbot</span>
-            </p>
-          </div>
-        </aside>
+          <Card className="rounded-[28px] border border-border/80 bg-background/45 shadow-none">
+            <CardContent className="space-y-4 px-6 py-6">
+              <p className="text-sm font-medium text-foreground">Readiness checklist</p>
+              <Separator className="bg-border/70" />
+              <ul className="space-y-3 text-sm leading-6 text-muted-foreground">
+                {readinessPoints.map((point) => (
+                  <li key={point} className="flex items-start gap-3">
+                    <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-primary" />
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="rounded-2xl border border-border/80 bg-secondary/35 px-4 py-4 text-sm leading-6 text-muted-foreground">
+                Current runtime is production-style so wallet hydration and browser extension behavior match real demo conditions more reliably.
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </section>
 
-      <section className="mt-8 grid gap-8 lg:grid-cols-2">
+      <section className="mt-8 grid gap-8 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:100ms]">
         <WalletCard
           wallet={wallet}
-          debugEvents={walletDebug}
-          diagnostics={{ mounted, reactClickCount, nativeClickCount, lastNativeClickAt }}
           onConnect={handleConnect}
           onDisconnect={handleDisconnect}
         />
@@ -284,13 +374,17 @@ export default function Home() {
         />
       </section>
 
-      <section className="mt-8 grid gap-8 lg:grid-cols-2">
+      <section className="mt-8 grid gap-8 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:200ms]">
         <SendPaymentForm
           wallet={wallet}
           form={form}
           tx={tx}
+          isConfirming={isConfirmingPayment}
           onChange={(patch) => setForm((current) => ({ ...current, ...patch }))}
           onSubmit={handleSubmit}
+          onConfirm={handleConfirmSubmit}
+          onCancelConfirmation={handleCancelConfirmation}
+          lastSuccessfulRecipient={tx.status === "success" ? tx.recipient : null}
         />
         <TxResultCard tx={tx} />
       </section>

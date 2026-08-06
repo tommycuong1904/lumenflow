@@ -9,20 +9,22 @@ LumenFlow is a simple Stellar Testnet dApp built for the Stellar White Belt chal
 
 ## Current Status
 
-The app is implemented and builds successfully.
+The app is implemented, polished, and builds successfully for production preview.
 
 What is complete:
 - Freighter connection flow in the UI
 - Testnet-only wallet/network checks
 - Horizon-based XLM balance lookup
 - native XLM payment transaction creation
+- explicit **transaction confirmation step** before signing
 - Freighter signing flow integration
 - transaction submission flow and feedback UI
-- repo guidance files for future Hermes/ChatGPT sessions
+- clean error, loading, and disabled states
+- responsive layout for mobile and desktop
 
-What is still pending:
+What is pending for submission:
 - final manual verification in a browser that has the Freighter extension installed
-- final screenshot capture for challenge submission
+- final screenshot capture (`docs/screenshots/`)
 
 ## Tech Stack
 
@@ -42,6 +44,7 @@ What is still pending:
 ### 2. Wallet Connection
 - Connect wallet flow is implemented
 - Disconnect flow is implemented in the UI state
+- Copy address utility is provided
 
 ### 3. Balance Handling
 - Connected wallet XLM balance is fetched from Horizon Testnet
@@ -50,10 +53,11 @@ What is still pending:
 
 ### 4. Transaction Flow
 - Native XLM payment transaction is created with Stellar SDK
+- Explicit review/confirmation step precedes signing
 - Transaction is signed through Freighter
 - Signed transaction is submitted to Stellar Testnet
 - Success or failure feedback is shown in the UI
-- Transaction hash is shown after successful submission
+- Transaction hash is shown after successful submission with a link to Stellar Expert
 
 ## Local Setup
 
@@ -83,7 +87,8 @@ http://localhost:3000
 Current workspace note:
 
 ```text
-LumenFlow is currently served on port 3002 in this environment so port 3001 remains available for SettleFlow.
+LumenFlow is accessible for production-style preview via IP at http://156.67.24.44:3002/ 
+(Port 3001 is reserved for SettleFlow).
 ```
 
 ### Production build
@@ -171,4 +176,4 @@ docs/
 
 - The current verification environment used during development did not include the Freighter browser extension, so final end-to-end manual verification must be completed in a Freighter-enabled browser.
 - This project intentionally keeps scope tight to White Belt / Level 1 requirements.
-- Future expansion can build on the same `LumenFlow` product line if later challenge levels allow it.
+- Future expansion can build on the same `LumenFlow` product line if later challenge levels allow it (e.g. evolving into a Payment Tracker or Approval-to-Settlement Workflow).

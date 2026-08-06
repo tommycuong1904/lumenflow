@@ -1,93 +1,183 @@
-import { truncateAddress } from "@/lib/utils/format";
-import type { FreighterDebugEvent, WalletState } from "@/lib/stellar/types";
+import { useEffect, useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { toTitleCase, truncateAddress } from "@/lib/utils/format";
+import type { WalletState } from "@/lib/stellar/types";
+import { WalletQrCode } from "@/components/WalletQrCode";
 
 type WalletCardProps = {
   wallet: WalletState;
-  debugEvents: FreighterDebugEvent[];
-  diagnostics: {
-    mounted: boolean;
-    reactClickCount: number;
-    nativeClickCount: number;
-    lastNativeClickAt: string | null;
-  };
   onConnect: () => Promise<void>;
   onDisconnect: () => void;
 };
 
-export function WalletCard({ wallet, debugEvents, diagnostics, onConnect, onDisconnect }: WalletCardProps) {
+function StatusPill({ label, value }: { label: string; value: string }) {
   return (
-    <section className="rounded-[28px] border border-white/10 bg-[var(--color-panel)] p-6 shadow-[0_20px_60px_rgba(5,9,20,0.28)]">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium text-slate-200">Wallet</p>
-          <h2 className="mt-1 text-2xl font-semibold text-white">Freighter connection</h2>
+    <div className="rounded-2xl border border-border bg-muted/35 px-4 py-3">
+      <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">{label}</p>
+      <p className="mt-2 break-all text-sm font-medium text-foreground">{value}</p>
+    </div>
+  );
+}
+
+export function WalletCard({ wallet, onConnect, onDisconnect }: WalletCardProps) {
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
+
+  useEffect(() => {
+    if (copyState === "idle") {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setCopyState("idle");
+    }, 1800);
+
+    return () => window.clearTimeout(timeout);
+  }, [copyState]);
+
+  async function handleCopyAddress() {
+    if (!wallet.publicKey) return;
+
+    const address = wallet.publicKey;
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(address);
+      } else {
+        copyWithFallback(address);
+      }
+      setCopyState("copied");
+    } catch {
+      try {
+        copyWithFallback(address);
+        setCopyState("copied");
+      } catch {
+        setCopyState("error");
+      }
+    }
+  }
+
+  function copyWithFallback(text: string) {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    textarea.style.top = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    const succeeded = document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    if (!succeeded) {
+      throw new Error("execCommand copy failed");
+    }
+  }
+
+  return (
+    <Card className="rounded-3xl border border-border/80 bg-card/90 shadow-[0_24px_80px_rgba(4,8,20,0.35)] backdrop-blur-sm">
+      <CardHeader className="flex flex-col gap-4 px-5 pt-6 pb-0 sm:flex-row sm:items-start sm:justify-between sm:px-7">
+        <div className="space-y-2">
+          <Badge variant="outline" className="w-fit border-primary/20 bg-primary/8 px-3 py-1 text-[11px] tracking-[0.24em] text-primary uppercase">
+            Wallet
+          </Badge>
+          <CardTitle className="text-2xl font-semibold text-foreground">Freighter connection</CardTitle>
+          <CardDescription className="max-w-xl text-sm leading-6 text-muted-foreground">
+            Connect your Stellar wallet and confirm you are on Testnet before checking balance or sending a payment.
+          </CardDescription>
         </div>
-        {wallet.connected ? (
-          <button
-            type="button"
-            onClick={onDisconnect}
-            className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-white/25 hover:bg-white/5"
-          >
-            Disconnect
-          </button>
-        ) : (
-          <button
-            id="freighter-connect-button"
-            type="button"
-            onClick={onConnect}
-            disabled={wallet.loading}
-            className="rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {wallet.loading ? "Connecting..." : "Connect Freighter"}
-          </button>
-        )}
-      </div>
+        <CardAction className="w-full sm:w-auto">
+          {wallet.connected ? (
+            <Button type="button" variant="outline" size="lg" onClick={onDisconnect} className="w-full rounded-full border-border bg-secondary/50 px-5 text-secondary-foreground hover:bg-secondary/80 sm:w-auto">
+              Disconnect
+            </Button>
+          ) : (
+            <Button
+              id="freighter-connect-button"
+              type="button"
+              size="lg"
+              onClick={onConnect}
+              disabled={wallet.loading}
+              className="w-full rounded-full bg-primary px-5 text-primary-foreground hover:bg-[#7c3aed] sm:w-auto"
+            >
+              {wallet.loading ? "Connecting..." : "Connect Freighter"}
+            </Button>
+          )}
+        </CardAction>
+      </CardHeader>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <article className="rounded-3xl border border-white/8 bg-white/5 p-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Connection</p>
-          <p className="mt-3 text-sm text-slate-200">
-            {wallet.connected && wallet.publicKey ? truncateAddress(wallet.publicKey) : "Not connected"}
-          </p>
-        </article>
-        <article className="rounded-3xl border border-white/8 bg-white/5 p-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Network</p>
-          <p className="mt-3 text-sm text-slate-200">{wallet.network ?? "Unknown"}</p>
-        </article>
-      </div>
-
-      <div className="mt-4 rounded-2xl border border-white/8 bg-white/5 px-4 py-3 text-sm text-slate-300">
-        Freighter must be installed and switched to Stellar Testnet before you connect.
-      </div>
-
-      <div className="mt-4 rounded-2xl border border-violet-400/15 bg-violet-400/5 px-4 py-4 text-sm text-slate-200">
-        <p className="font-semibold text-violet-200">Client diagnostics</p>
-        <ul className="mt-3 space-y-2 font-mono text-xs leading-6 text-slate-300">
-          <li>mounted: {diagnostics.mounted ? "yes" : "no"}</li>
-          <li>reactClickCount: {diagnostics.reactClickCount}</li>
-          <li>nativeClickCount: {diagnostics.nativeClickCount}</li>
-          <li>lastNativeClickAt: {diagnostics.lastNativeClickAt ?? "none"}</li>
-        </ul>
-      </div>
-
-      {wallet.error ? (
-        <p className="mt-4 rounded-2xl border border-rose-400/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">
-          {wallet.error}
-        </p>
-      ) : null}
-
-      {debugEvents.length ? (
-        <div className="mt-4 rounded-2xl border border-cyan-400/15 bg-cyan-400/5 px-4 py-4 text-sm text-slate-200">
-          <p className="font-semibold text-cyan-200">Freighter debug trace</p>
-          <ul className="mt-3 space-y-2">
-            {debugEvents.map((debugEvent, index) => (
-              <li key={`${debugEvent.step}-${index}`} className="break-words rounded-xl bg-slate-950/30 px-3 py-2 font-mono text-xs leading-6 text-slate-300">
-                <span className="font-semibold text-cyan-200">{debugEvent.step}:</span> {debugEvent.detail}
-              </li>
-            ))}
-          </ul>
+      <CardContent className="space-y-5 px-6 pt-6 pb-6 sm:px-7">
+        <div className="grid gap-4 grid-cols-1">
+          <div className="rounded-2xl border border-border bg-muted/35 px-4 py-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">Connection</p>
+                <p className="mt-2 break-all text-sm font-medium text-foreground">
+                  {wallet.connected && wallet.publicKey ? truncateAddress(wallet.publicKey) : "Not connected"}
+                </p>
+              </div>
+              {wallet.connected && wallet.publicKey ? (
+                <div className="relative shrink-0">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyAddress}
+                    disabled={wallet.loading}
+                    className="rounded-full border-border bg-background/60 px-3 text-xs text-foreground transition-transform duration-150 hover:bg-background active:scale-95"
+                  >
+                    Copy address
+                  </Button>
+                  <span
+                    role="status"
+                    aria-live="polite"
+                    className={`pointer-events-none absolute -top-9 right-0 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-medium shadow-sm transition-all duration-300 ${
+                      copyState === "idle"
+                        ? "translate-y-1 opacity-0"
+                        : "translate-y-0 opacity-100"
+                    } ${
+                      copyState === "error"
+                        ? "border-destructive/30 bg-destructive/10 text-destructive"
+                        : "border-primary/25 bg-primary/10 text-primary"
+                    }`}
+                  >
+                    {copyState === "error" ? "Copy failed" : "Copied!"}
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <StatusPill label="Network" value={wallet.network ? toTitleCase(wallet.network) : "Unknown"} />
         </div>
-      ) : null}
-    </section>
+
+        {wallet.connected && wallet.publicKey ? (
+          <WalletQrCode address={wallet.publicKey} />
+        ) : null}
+
+        <Alert className="rounded-2xl border-border/80 bg-secondary/35">
+          <AlertTitle className="text-sm font-medium text-foreground">Connection checklist</AlertTitle>
+          <AlertDescription className="text-sm leading-6 text-muted-foreground">
+            Install Freighter, switch it to Stellar Testnet, then connect here to unlock balance refresh and payment review.
+          </AlertDescription>
+        </Alert>
+
+        {wallet.error ? (
+          <Alert variant="destructive" className="rounded-2xl border-destructive/30 bg-destructive/8">
+            <AlertTitle className="text-sm font-medium">Wallet error</AlertTitle>
+            <AlertDescription className="text-sm leading-6">{wallet.error}</AlertDescription>
+          </Alert>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 }
