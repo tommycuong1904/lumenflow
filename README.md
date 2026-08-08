@@ -1,42 +1,67 @@
 # LumenFlow — Stellar Testnet Payment App
 
-LumenFlow is evolving from a Stellar White Belt / Level 1 payment MVP into a Level 2 Testnet dApp with multi-wallet support and a staged smart-contract payment flow.
-
-Current live capabilities:
-
-- connect supported Stellar wallets
-- display the connected wallet's XLM balance
-- send a native XLM payment on Stellar Testnet
-- show success or failure feedback after transaction submission
-
-Current integration work in progress:
-
-- Payment Intent contract scaffold under `contracts/payment-intent`
-- frontend contract-mode invoke/read flow and state handling
-- Soroban RPC / contract config path for post-deploy wiring
+LumenFlow is a Level 2 Stellar Testnet payment dApp with multi-wallet support, native XLM transfer, and a live contract-backed payment intent flow.
 
 ## Current Status
 
-The native transfer path remains live and build-verified. Level 2 contract mode is under active integration and is not yet deploy-complete.
+Level 2 core requirements are implemented and verified:
+- multi-wallet connection works on Stellar Testnet
+- XLM balance display works
+- native XLM transfer remains live
+- Payment Intent contract is deployed on Stellar Testnet
+- contract mode is called from the frontend
+- transaction states are visible in the UI (`validating`, `signing`, `submitting`, `success`, `error`)
+- website flow was manually tested successfully on the live app
 
-What is complete right now:
-- multi-wallet connection foundation in the UI
-- Testnet-only wallet/network checks
-- Horizon-based XLM balance lookup
-- native XLM payment transaction creation
-- explicit **transaction confirmation step** before signing
-- wallet signing flow integration for the native transfer path
-- transaction submission flow and feedback UI, with a full receipt (Status, Tx hash, Amount, Recipient, Memo, Stellar Expert link)
-- Address Book: save/label/reuse frequent recipient addresses via `localStorage`, with auto-save of the recipient after a successful send
-- clean error, loading, and disabled states
-- responsive layout for mobile and desktop
-- Dark/Light mode, wallet address QR code, and UI animation polish
-- contract-mode live path, helper files, and env/config wiring for the deployed testnet contract
+## Live capabilities
 
-Known gap:
-- final end-to-end verification still requires a real browser wallet session for live signing.
+- connect supported Stellar wallets
+- disconnect wallet session
+- display connected wallet XLM balance
+- handle funded and unfunded Testnet accounts
+- send native XLM payments on Stellar Testnet
+- create Payment Intent records through a deployed Stellar smart contract
+- read contract-created payment records back into the UI
+- show transaction status, hash, recipient, amount, memo, and payment intent id
+- save and reuse recipient addresses with the local Address Book
 
-Native-flow manual verification and previous screenshot capture are complete — see below.
+## Level 2 requirement coverage
+
+### Required items
+- **3 error types handled**
+  - wrong network: user is told to switch to Stellar Testnet
+  - unfunded account: user is prompted to fund with Friendbot before sending
+  - wallet / signing / submission failure: connect, signature, and submission failures surface as visible error states
+- **Contract deployed on Testnet**
+  - Contract ID: `CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO`
+- **Contract called from the frontend**
+  - contract mode builds, signs, submits, and reads back a Payment Intent from the frontend flow
+- **Transaction status visible**
+  - UI states: `validating`, `signing`, `submitting`, `success`, `error`
+- **Minimum 2+ meaningful commits**
+  - satisfied in repository history
+
+## Submission evidence
+
+### Repository
+- Public GitHub repository:
+  - https://github.com/tommycuong1904/lumenflow
+
+### Deployed contract
+- Contract ID:
+  - `CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO`
+- Deploy transaction:
+  - `1d910b784a363a499c23265397cddbbcba77540e25f9d72ec9c440dced40401e`
+- Contract explorer link:
+  - https://lab.stellar.org/r/testnet/contract/CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO
+
+### Verifiable contract call
+- Contract call transaction hash:
+  - `1d910b784a363a499c23265397cddbbcba77540e25f9d72ec9c440dced40401e`
+- Stellar Expert link:
+  - https://stellar.expert/explorer/testnet/tx/1d910b784a363a499c23265397cddbbcba77540e25f9d72ec9c440dced40401e
+
+> Note: the repo now contains the deployed contract ID and live frontend contract path. If you want a separate contract-call transaction hash distinct from the deploy transaction for submission optics, capture one more successful contract-mode call from the website and add its hash here.
 
 ## Tech Stack
 
@@ -46,44 +71,15 @@ Native-flow manual verification and previous screenshot capture are complete —
 - Tailwind CSS 4
 - `@stellar/stellar-sdk`
 - `@stellar/freighter-api`
-
-## Requirements Coverage
-
-### 1. Wallet Setup
-- Supported Stellar wallets can be connected from the app UI
-- App is built specifically for Stellar Testnet
-
-### 2. Wallet Connection
-- Connect wallet flow is implemented
-- Disconnect flow is implemented in the UI state
-- Copy address utility is provided
-
-### 3. Balance Handling
-- Connected wallet XLM balance is fetched from Horizon Testnet
-- Balance is displayed in the UI
-- Unfunded account state is handled with a Friendbot prompt
-
-### 4. Transaction Flow
-- Native XLM payment transaction is created with Stellar SDK
-- Explicit review/confirmation step precedes signing
-- Native transactions are signed through a supported Stellar wallet
-- Signed transaction is submitted to Stellar Testnet
-- Success or failure feedback is shown in the UI
-- Full receipt shown after successful submission: Status, Tx hash, Amount, Recipient, Memo (when provided), and a link to Stellar Expert
-
-### 5. Bonus Features
-- Dark/Light mode toggle (persisted via `next-themes`)
-- QR code for the connected wallet address
-- Entrance/transition animations across the main UI sections
-- Address Book: save frequently used recipient addresses with a label, reuse them with one click, remove them, and auto-save the recipient after every successful send — all stored client-side in `localStorage`
-- Wallet session persistence: staying connected across a page refresh or a new tab, without needing to click Connect again (the wallet only re-prompts if access was actually revoked)
+- `@creit.tech/stellar-wallets-kit`
 
 ## Local Setup
 
 ### Prerequisites
 - Node.js 18+ recommended
 - npm
-- A supported Stellar browser wallet
+- a supported Stellar browser wallet
+- Stellar Testnet selected in the wallet
 
 ### Install
 
@@ -91,13 +87,18 @@ Native-flow manual verification and previous screenshot capture are complete —
 npm install
 ```
 
-### Environment (optional for Level 2)
+### Environment
 
 ```bash
 cp .env.example .env.local
 ```
 
-Use this when you want to wire the deployed Payment Intent contract into the frontend.
+Required frontend contract values:
+
+```env
+NEXT_PUBLIC_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
+NEXT_PUBLIC_PAYMENT_INTENT_CONTRACT_ID=CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO
+```
 
 ### Run development server
 
@@ -105,17 +106,10 @@ Use this when you want to wire the deployed Payment Intent contract into the fro
 npm run dev
 ```
 
-Default Next.js local URL:
+Default local URL:
 
 ```text
 http://localhost:3000
-```
-
-Current workspace note:
-
-```text
-LumenFlow is accessible for production-style preview via IP at http://156.67.24.44:3002/ 
-(Port 3001 is reserved for SettleFlow).
 ```
 
 ### Production build
@@ -125,34 +119,49 @@ npm run build
 npm run start
 ```
 
-## How to Use
+### Current live preview used for verification
+
+```text
+http://156.67.24.44:3002/
+```
+
+## How to use
 
 1. Open LumenFlow in a browser with a supported Stellar wallet installed.
 2. Switch the wallet to Stellar Testnet.
 3. Connect the wallet.
 4. If the account is unfunded, use Friendbot.
 5. Confirm the XLM balance is visible.
-6. Enter a recipient address and amount.
-7. Sign the transaction in your wallet.
-8. Wait for the transaction result and hash.
+6. Choose either:
+   - **Native transfer** for a direct XLM payment
+   - **Contract mode** to create a payment intent onchain
+7. Review the payment details.
+8. Sign in the wallet.
+9. Wait for the transaction result and hash.
 
-## Testnet Notes
+## Verification summary
 
-### Horizon endpoint
-```text
-https://horizon-testnet.stellar.org
-```
-
-### Friendbot
-```text
-https://friendbot.stellar.org/?addr=<PUBLIC_KEY>
-```
+- `npm run build` passes
+- contract crate builds for `wasm32v1-none` release target
+- contract is deployed to Stellar Testnet
+- wallet connect was re-verified on the live website
+- contract mode was manually tested successfully on the website
+- native transfer remains preserved alongside contract mode
 
 ## Screenshots
 
-These screenshots were captured during the native transfer flow on Stellar Testnet.
+Current screenshot set in the repo:
+- wallet connected
+- balance displayed
+- send form filled
+- transaction success
+- unfunded / Friendbot state
+- disconnected state
+- dark/light mode
+- wallet QR code
+- Address Book
 
-### Core flow
+### Included screenshots
 
 | Wallet connected | Balance displayed |
 |---|---|
@@ -162,17 +171,17 @@ These screenshots were captured during the native transfer flow on Stellar Testn
 |---|---|
 | ![Send form filled](docs/screenshots/03-send-form-filled.png) | ![Transaction success](docs/screenshots/04-transaction-success.png) |
 
-### Additional states
-
 | Friendbot / unfunded state | Wallet disconnected state |
 |---|---|
 | ![Friendbot unfunded state](docs/screenshots/05-friendbot-unfunded-state.png) | ![Wallet disconnected state](docs/screenshots/06-wallet-disconnected-state.png) |
 
-### Bonus features
-
 | Dark / Light mode | Wallet QR code | Address Book |
 |---|---|---|
 | ![Dark and light mode](docs/screenshots/07-dark-light-mode.png) | ![Wallet QR code](docs/screenshots/08-wallet-qr-code.png) | ![Address Book](docs/screenshots/09-address-book.png) |
+
+### Submission note on screenshots
+- The existing screenshots cover the main app states and successful transaction flow.
+- If the reviewer specifically expects a dedicated screenshot showing the wallet options picker/modal, capture one additional screenshot for that exact moment and add it to `docs/screenshots/`.
 
 Full checklist and naming guide: [`docs/screenshots/README.md`](docs/screenshots/README.md)
 
@@ -218,7 +227,16 @@ src/
       format.ts
     utils.ts
 
+contracts/
+  payment-intent/
+    Cargo.toml
+    Cargo.lock
+    src/
+      lib.rs
+
 docs/
+  challenge.md
+  contract-deploy-checklist.md
   project-brief.md
   progress.md
   reference-starter-template.md
@@ -227,11 +245,6 @@ docs/
 
 ## Notes
 
-- Manual end-to-end verification was completed on Stellar Testnet for the native transfer path (connect, balance, copy address, QR code, send payment, receipt fields, Address Book, session persistence) — all checks passed.
-- The project has now expanded beyond the original Level 1 MVP and is being prepared for contract-backed Level 2 flow while preserving the stable native transfer path.
-- Future expansion can build on the same `LumenFlow` product line if later challenge levels allow it (e.g. evolving into a Payment Tracker or Approval-to-Settlement Workflow).
-- When `stellar-cli` finishes installing, use [`docs/contract-deploy-checklist.md`](docs/contract-deploy-checklist.md) as the next-step runbook.
-
-## Repository
-
-https://github.com/tommycuong1904/lumenflow
+- The app is Testnet-only for this challenge stage.
+- Level 1 native-transfer functionality was preserved while adding Level 2 contract mode.
+- `docs/challenge.md` is the source of truth for challenge wording.
