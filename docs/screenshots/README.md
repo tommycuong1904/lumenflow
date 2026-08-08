@@ -1,10 +1,10 @@
 # Screenshot Checklist
 
-Capture the following screenshots after running LumenFlow with Freighter on Stellar Testnet.
+Capture the following screenshots after running LumenFlow on Stellar Testnet with a supported wallet connected for the native transfer path.
 
 ## Required by White Belt submission
 1. `01-wallet-connected.png`
-   - Freighter connected
+   - wallet connected
    - wallet address visible
    - network visible as Testnet
 

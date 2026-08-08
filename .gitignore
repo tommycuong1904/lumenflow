@@ -20,6 +20,9 @@
 # production
 /build
 
+# Rust / Soroban build artifacts
+contracts/payment-intent/target/
+
 # misc
 .DS_Store
 *.pem

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AddressBook } from "@/components/AddressBook";
+import { getPaymentIntentConfig } from "@/lib/stellar/contract";
 import type { SendFormState, TxState, WalletState } from "@/lib/stellar/types";
 
 type SendPaymentFormProps = {
@@ -37,11 +38,18 @@ export function SendPaymentForm({
   lastSuccessfulRecipient,
 }: SendPaymentFormProps) {
   const isBusy = tx.status === "validating" || tx.status === "signing" || tx.status === "submitting";
+  const contractConfig = getPaymentIntentConfig();
+  const contractReady = contractConfig.ready;
+  const isContractMode = form.mode === "contract";
   const paymentNotes = wallet.connected
     ? isConfirming
-      ? "Review the payment summary below. Freighter will open only after you confirm the details."
-      : "Fill in the payment details, then choose Review payment before opening Freighter."
-    : "Connect Freighter on Stellar Testnet before reviewing or sending a payment.";
+      ? isContractMode
+        ? "Review the payment details below. Your wallet will open after you confirm to create the payment intent onchain."
+        : "Review the payment details below. Your wallet will open only after you confirm."
+      : isContractMode
+        ? "Contract mode creates an onchain payment intent that you can sign and track on Testnet."
+        : "Fill in the payment details, then choose Review payment before opening your wallet."
+    : "Connect your Stellar wallet on Testnet before reviewing or sending a payment.";
 
   return (
     <Card className="rounded-3xl border border-border/80 bg-card/90 shadow-[0_24px_80px_rgba(4,8,20,0.35)] backdrop-blur-sm">
@@ -51,7 +59,7 @@ export function SendPaymentForm({
         </Badge>
         <CardTitle className="text-2xl font-semibold text-foreground">Send XLM on Testnet</CardTitle>
         <CardDescription className="max-w-xl text-sm leading-6 text-muted-foreground">
-          Use an existing Stellar Testnet destination account for the MVP verification. This flow is intentionally limited to native XLM transfers.
+          Choose how you want to send on Testnet: use Native transfer for a direct XLM payment or Contract mode for an onchain payment intent.
         </CardDescription>
       </CardHeader>
 
@@ -62,6 +70,35 @@ export function SendPaymentForm({
         />
 
         <div className="grid gap-5">
+          <div className="grid gap-2">
+            <Label className="text-sm font-medium text-foreground">Transfer mode</Label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Button
+                type="button"
+                variant={form.mode === "native_transfer" ? "default" : "outline"}
+                onClick={() => onChange({ mode: "native_transfer" })}
+                disabled={isBusy || isConfirming}
+                className="justify-start rounded-2xl px-4 py-6 text-left"
+              >
+                <span className="flex flex-col items-start gap-1">
+                  <span>Native transfer</span>
+                  <span className="text-xs font-normal opacity-80">Send XLM directly on Testnet</span>
+                </span>
+              </Button>
+              <Button
+                type="button"
+                variant={form.mode === "contract" ? "default" : "outline"}
+                onClick={() => onChange({ mode: "contract" })}
+                disabled={!contractReady || isBusy || isConfirming}
+                className="justify-start rounded-2xl px-4 py-6 text-left"
+              >
+                <span className="flex flex-col items-start gap-1">
+                  <span>Contract mode</span>
+                  <span className="text-xs font-normal opacity-80">Create a payment intent onchain</span>
+                </span>
+              </Button>
+            </div>
+          </div>
           <div className="grid gap-2">
             <Label htmlFor="recipient-address" className="text-sm font-medium text-foreground">
               Recipient address
@@ -120,13 +157,22 @@ export function SendPaymentForm({
         <div className="space-y-4 rounded-[24px] border border-border/80 bg-background/35 px-4 py-4 sm:px-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">{isConfirming ? "Review before signing" : "Ready to sign"}</p>
+              <p className="text-sm font-medium text-foreground">{isConfirming ? (isContractMode ? "Review contract payment" : "Review payment") : isContractMode ? "Contract payment ready" : "Ready to sign"}</p>
               <p className="text-sm leading-6 text-muted-foreground">
                 {isConfirming
-                  ? "Check the destination, amount, and memo before opening Freighter for signature."
+                  ? isContractMode
+                    ? "Check the destination and amount before creating the payment intent in your wallet."
+                    : "Check the destination, amount, and memo before opening your wallet."
                   : wallet.connected
-                    ? "Freighter will open a signature request after you confirm the payment details."
-                    : "Connect your wallet first to unlock sending."}
+                    ? isContractMode
+                      ? "After you confirm, your wallet will create a payment intent on Stellar Testnet."
+                      : "After you confirm, your wallet will open a signature request for the payment."
+                    : "Connect your wallet first to start sending."}
+              </p>
+              <p className="text-xs leading-5 text-muted-foreground/90">
+                {contractReady
+                  ? `Contract is connected (${contractConfig.contractId.slice(0, 10)}...).`
+                  : `Contract setup is missing. RPC target: ${contractConfig.rpcUrl}`}
               </p>
             </div>
             {!isConfirming ? (
@@ -137,7 +183,7 @@ export function SendPaymentForm({
                 size="lg"
                 className="w-full shrink-0 rounded-full bg-primary px-5 text-primary-foreground hover:bg-[#7c3aed] sm:w-auto"
               >
-                Review payment
+                {form.mode === "contract" ? "Review contract payment" : "Review payment"}
               </Button>
             ) : null}
           </div>
@@ -156,6 +202,10 @@ export function SendPaymentForm({
                 <div className="rounded-2xl border border-border/70 bg-background/60 px-4 py-3">
                   <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Memo</p>
                   <p className="mt-2 break-words text-sm font-medium text-foreground">{form.memo.trim() || "No memo"}</p>
+                </div>
+                <div className="rounded-2xl border border-border/70 bg-background/60 px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Mode</p>
+                  <p className="mt-2 text-sm font-medium text-foreground">{form.mode === "contract" ? "Contract" : "Native transfer"}</p>
                 </div>
               </div>
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">

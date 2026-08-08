@@ -34,9 +34,9 @@ export function TxResultCard({ tx }: TxResultCardProps) {
         <Badge variant="outline" className="w-fit border-primary/20 bg-primary/8 px-3 py-1 text-[11px] tracking-[0.24em] text-primary uppercase">
           Result
         </Badge>
-        <CardTitle className="text-2xl font-semibold text-foreground">Network feedback</CardTitle>
+        <CardTitle className="text-2xl font-semibold text-foreground">Payment status</CardTitle>
         <CardDescription className="text-sm leading-6 text-muted-foreground">
-          Follow the transaction lifecycle from validation to submission, then capture the resulting hash for demo evidence.
+          Track each payment from review to submission, then open the final transaction on Stellar Expert if you want the full onchain details.
         </CardDescription>
       </CardHeader>
 
@@ -93,10 +93,22 @@ export function TxResultCard({ tx }: TxResultCardProps) {
                       <p className="mt-2 break-words text-sm font-medium text-foreground">{tx.memo}</p>
                     </div>
                   ) : null}
+                  {tx.mode ? (
+                    <div className="rounded-2xl border border-border/60 bg-secondary/25 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Mode</p>
+                      <p className="mt-2 text-sm font-medium text-foreground">{tx.mode === "contract" ? "Contract" : "Native transfer"}</p>
+                    </div>
+                  ) : null}
+                  {tx.paymentIntentId ? (
+                    <div className="rounded-2xl border border-border/60 bg-secondary/25 px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Payment intent</p>
+                      <p className="mt-2 break-all text-sm font-medium text-foreground">{tx.paymentIntentId}</p>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="flex flex-col gap-4 border-t border-border/40 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-xs text-muted-foreground">Captured for White Belt submission evidence.</span>
+                  <span className="text-xs text-muted-foreground">Open the transaction on Stellar Expert for the full onchain record.</span>
                   <a
                     href={getExplorerLink(tx.hash)}
                     target="_blank"
