@@ -91,9 +91,9 @@ export function WalletCard({ wallet, onConnect, onDisconnect }: WalletCardProps)
           <Badge variant="outline" className="w-fit border-primary/20 bg-primary/8 px-3 py-1 text-[11px] tracking-[0.24em] text-primary uppercase">
             Wallet
           </Badge>
-          <CardTitle className="text-2xl font-semibold text-foreground">Freighter connection</CardTitle>
+          <CardTitle className="text-2xl font-semibold text-foreground">Wallet connection</CardTitle>
           <CardDescription className="max-w-xl text-sm leading-6 text-muted-foreground">
-            Connect your Stellar wallet and confirm you are on Testnet before checking balance or sending a payment.
+            Connect your Stellar wallet on Testnet to check your balance and start a payment.
           </CardDescription>
         </div>
         <CardAction className="w-full sm:w-auto">
@@ -110,7 +110,7 @@ export function WalletCard({ wallet, onConnect, onDisconnect }: WalletCardProps)
               disabled={wallet.loading}
               className="w-full rounded-full bg-primary px-5 text-primary-foreground hover:bg-[#7c3aed] sm:w-auto"
             >
-              {wallet.loading ? "Connecting..." : "Connect Freighter"}
+              {wallet.loading ? "Connecting..." : "Connect wallet"}
             </Button>
           )}
         </CardAction>
@@ -158,6 +158,7 @@ export function WalletCard({ wallet, onConnect, onDisconnect }: WalletCardProps)
             </div>
           </div>
           <StatusPill label="Network" value={wallet.network ? toTitleCase(wallet.network) : "Unknown"} />
+          <StatusPill label="Wallet" value={wallet.walletName ?? "Not selected"} />
         </div>
 
         {wallet.connected && wallet.publicKey ? (
@@ -167,7 +168,7 @@ export function WalletCard({ wallet, onConnect, onDisconnect }: WalletCardProps)
         <Alert className="rounded-2xl border-border/80 bg-secondary/35">
           <AlertTitle className="text-sm font-medium text-foreground">Connection checklist</AlertTitle>
           <AlertDescription className="text-sm leading-6 text-muted-foreground">
-            Install Freighter, switch it to Stellar Testnet, then connect here to unlock balance refresh and payment review.
+            Make sure your wallet is installed and set to Stellar Testnet before you connect.
           </AlertDescription>
         </Alert>
 

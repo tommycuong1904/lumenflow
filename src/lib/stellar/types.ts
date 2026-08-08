@@ -3,6 +3,8 @@ export type WalletState = {
   publicKey: string | null;
   network: string | null;
   networkPassphrase: string | null;
+  walletId?: string | null;
+  walletName?: string | null;
   loading: boolean;
   error: string | null;
 };
@@ -21,12 +23,15 @@ export type TxState = {
   amount?: string | null;
   recipient?: string | null;
   memo?: string | null;
+  mode?: "native_transfer" | "contract" | null;
+  paymentIntentId?: string | null;
 };
 
 export type SendFormState = {
   recipient: string;
   amount: string;
   memo: string;
+  mode?: "native_transfer" | "contract";
 };
 
 export type FreighterDebugEvent = {

@@ -15,8 +15,8 @@
 
 ## Important difference from LumenFlow
 - Reference template: different stack / architecture
-- LumenFlow: Next.js 16 + `@stellar/stellar-sdk` + `@stellar/freighter-api`
-- LumenFlow scope: Freighter-only, XLM-only, frontend-only
+- LumenFlow: Next.js 16 + `@stellar/stellar-sdk` + wallet integration layer
+- LumenFlow scope: multi-wallet foundation, XLM live path, frontend-first with Level 2 contract integration in progress
 
 ## Rubric hints from the reference
 - UI/UX Design — 40%

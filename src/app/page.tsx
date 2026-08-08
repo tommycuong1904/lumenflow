@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NETWORK_PASSPHRASE } from "@/lib/stellar/constants";
 import { getXlmBalance } from "@/lib/stellar/horizon";
+import { getPaymentIntentRecord, getSorobanTransaction, submitSignedContractTransaction, createPaymentIntentTransactionXdr } from "@/lib/stellar/contract-rpc";
 import { submitSignedTransaction } from "@/lib/stellar/submit";
 import type {
   BalanceState,
@@ -21,7 +22,7 @@ import type {
 } from "@/lib/stellar/types";
 import { createPaymentTransaction } from "@/lib/stellar/transactions";
 import { isValidAmount, isValidPublicKey } from "@/lib/stellar/validation";
-import { connectWallet, signFreighterTransaction } from "@/lib/stellar/wallet";
+import { connectWallet, disconnectWallet, signWalletTransaction } from "@/lib/stellar/wallet";
 
 const initialWalletState: WalletState = {
   connected: false,
@@ -43,18 +44,22 @@ const initialTxState: TxState = {
   status: "idle",
   hash: null,
   message: null,
+  mode: "native_transfer",
+  paymentIntentId: null,
 };
 
 const initialFormState: SendFormState = {
   recipient: "",
   amount: "",
   memo: "",
+  mode: "native_transfer",
 };
 
 const readinessPoints = [
-  "Freighter connect and disconnect",
-  "XLM balance visibility on Testnet",
-  "Signed Stellar payment submission",
+  "Connect a supported wallet on Testnet",
+  "Check your live XLM balance",
+  "Send XLM with the native payment flow",
+  "Create payment intents with contract mode",
 ];
 
 const WALLET_SESSION_KEY = "lumenflow_wallet_session";
@@ -153,7 +158,7 @@ export default function Home() {
           ...current,
           loading: false,
           connected: false,
-          error: result.error,
+          error: result.error ?? "Could not connect to a Stellar wallet.",
         }));
         return;
       }
@@ -179,6 +184,8 @@ export default function Home() {
         publicKey: result.address,
         network: result.network,
         networkPassphrase: result.networkPassphrase,
+        walletId: result.walletId ?? null,
+        walletName: result.walletName ?? null,
         loading: false,
         error: null,
       });
@@ -204,6 +211,7 @@ export default function Home() {
 
   function handleDisconnect() {
     window.localStorage.removeItem(WALLET_SESSION_KEY);
+    void disconnectWallet();
     setWallet(initialWalletState);
     setBalance(initialBalanceState);
     setTx(initialTxState);
@@ -217,7 +225,7 @@ export default function Home() {
 
   function handleSubmit() {
     if (!wallet.connected || !wallet.publicKey) {
-      setTx({ status: "error", hash: null, message: "Connect Freighter before sending a payment." });
+      setTx({ status: "error", hash: null, message: "Connect a Stellar wallet before sending a payment." });
       setIsConfirmingPayment(false);
       return;
     }
@@ -247,7 +255,12 @@ export default function Home() {
     setTx({
       status: "idle",
       hash: null,
-      message: "Payment details look valid. Review them below, then confirm to open Freighter.",
+      message:
+        form.mode === "contract"
+          ? "Contract payment details look valid. Review them below, then confirm to create the payment intent on Stellar Testnet."
+          : "Payment details look valid. Review them below, then confirm to open your wallet.",
+      mode: form.mode ?? "native_transfer",
+      paymentIntentId: null,
     });
     setIsConfirmingPayment(true);
   }
@@ -263,48 +276,111 @@ export default function Home() {
 
   async function handleConfirmSubmit() {
     if (!wallet.connected || !wallet.publicKey) {
-      setTx({ status: "error", hash: null, message: "Connect Freighter before sending a payment." });
+      setTx({ status: "error", hash: null, message: "Connect a Stellar wallet before sending a payment." });
       setIsConfirmingPayment(false);
       return;
     }
 
     try {
-      setTx({ status: "validating", hash: null, message: "Preparing the Stellar Testnet payment for signing..." });
+      const isContractMode = form.mode === "contract";
 
-      const transactionXdr = await createPaymentTransaction({
-        sourcePublicKey: wallet.publicKey,
-        destinationPublicKey: form.recipient.trim(),
-        amount: form.amount.trim(),
-        memo: form.memo,
+      setTx({
+        status: "validating",
+        hash: null,
+        message: isContractMode
+          ? "Preparing the payment intent transaction for wallet signing..."
+          : "Preparing the Stellar Testnet payment for signing...",
+        mode: isContractMode ? "contract" : "native_transfer",
+        paymentIntentId: null,
       });
 
-      setTx({ status: "signing", hash: null, message: "Review the request in Freighter and approve the signature to continue." });
+      const transactionXdr = isContractMode
+        ? await createPaymentIntentTransactionXdr(wallet.publicKey, {
+            recipient: form.recipient.trim(),
+            amount: form.amount.trim(),
+          })
+        : await createPaymentTransaction({
+            sourcePublicKey: wallet.publicKey,
+            destinationPublicKey: form.recipient.trim(),
+            amount: form.amount.trim(),
+            memo: form.memo,
+          });
 
-      const signedResult = await signFreighterTransaction(transactionXdr, wallet.publicKey);
+      setTx({
+        status: "signing",
+        hash: null,
+        message: isContractMode
+          ? "Review the contract invocation in your wallet and approve the signature to continue."
+          : "Review the request in your wallet and approve the signature to continue.",
+        mode: isContractMode ? "contract" : "native_transfer",
+        paymentIntentId: null,
+      });
+
+      const signedResult = await signWalletTransaction(transactionXdr, wallet.publicKey);
       if ("error" in signedResult) {
-        setTx({ status: "error", hash: null, message: signedResult.error });
+        setTx({
+          status: "error",
+          hash: null,
+          message: signedResult.error ?? "Transaction signing failed.",
+          mode: isContractMode ? "contract" : "native_transfer",
+          paymentIntentId: null,
+        });
         setIsConfirmingPayment(false);
         return;
       }
 
-      setTx({ status: "submitting", hash: null, message: "Submitting the signed payment to Stellar Testnet..." });
-
-      const submission = await submitSignedTransaction(signedResult.signedTxXdr);
-
       setTx({
-        status: "success",
-        hash: submission.hash ?? null,
-        message: "Transaction submitted successfully.",
-        amount: form.amount.trim(),
-        recipient: form.recipient.trim(),
-        memo: form.memo.trim() || null,
+        status: "submitting",
+        hash: null,
+        message: isContractMode
+          ? "Submitting the signed contract invocation to Stellar Testnet..."
+          : "Submitting the signed payment to Stellar Testnet...",
+        mode: isContractMode ? "contract" : "native_transfer",
+        paymentIntentId: null,
       });
+
+      const submission = isContractMode
+        ? await submitSignedContractTransaction(signedResult.signedTxXdr)
+        : await submitSignedTransaction(signedResult.signedTxXdr);
+
+      if (isContractMode) {
+        const txDetails = await getSorobanTransaction(submission.hash);
+        const paymentIntentId = txDetails.status === "SUCCESS" && txDetails.returnValue
+          ? String(txDetails.returnValue.value())
+          : null;
+
+        const paymentRecord = paymentIntentId ? await getPaymentIntentRecord(paymentIntentId) : null;
+
+        setTx({
+          status: "success",
+          hash: submission.hash,
+          message: paymentIntentId
+            ? `Payment intent created on Stellar Testnet with onchain id #${paymentIntentId}.`
+            : "Contract invocation submitted to Stellar Testnet successfully.",
+          amount: paymentRecord?.amount ?? form.amount.trim(),
+          recipient: paymentRecord?.recipient ?? form.recipient.trim(),
+          memo: form.memo.trim() || null,
+          mode: "contract",
+          paymentIntentId,
+        });
+      } else {
+        setTx({
+          status: "success",
+          hash: submission.hash,
+          message: "Payment submitted to Stellar Testnet successfully.",
+          amount: form.amount.trim(),
+          recipient: form.recipient.trim(),
+          memo: form.memo.trim() || null,
+          mode: "native_transfer",
+          paymentIntentId: null,
+        });
+      }
       setIsConfirmingPayment(false);
 
       await refreshBalance(wallet.publicKey);
     } catch (error) {
       const message = error instanceof Error ? error.message : "The payment could not be completed on Stellar Testnet.";
-      setTx({ status: "error", hash: null, message });
+      setTx({ status: "error", hash: null, message, mode: form.mode ?? "native_transfer", paymentIntentId: null });
       setIsConfirmingPayment(false);
     }
   }
@@ -325,25 +401,28 @@ export default function Home() {
                 LumenFlow
               </h1>
               <p className="max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-                A focused Stellar Testnet payment utility for connecting Freighter, checking XLM balance, and validating a signed transfer flow without the noise of a full crypto dashboard.
+                A simple Stellar Testnet payment app where you can connect a wallet, send XLM, and create contract-based payment intents in one flow.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Badge variant="outline" className="border-border bg-secondary/45 px-3 py-1 text-sm text-secondary-foreground">
-                Freighter wallet
+Multi-wallet ready
               </Badge>
               <Badge variant="outline" className="border-border bg-secondary/45 px-3 py-1 text-sm text-secondary-foreground">
                 Testnet only
               </Badge>
               <Badge variant="outline" className="border-border bg-secondary/45 px-3 py-1 text-sm text-secondary-foreground">
-                Native XLM
+                Native XLM live
+              </Badge>
+              <Badge variant="outline" className="border-border bg-secondary/45 px-3 py-1 text-sm text-secondary-foreground">
+                Contract mode live
               </Badge>
             </div>
           </div>
 
           <Card className="rounded-[28px] border border-border/80 bg-background/45 shadow-none">
             <CardContent className="space-y-4 px-6 py-6">
-              <p className="text-sm font-medium text-foreground">Readiness checklist</p>
+              <p className="text-sm font-medium text-foreground">What you can do here</p>
               <Separator className="bg-border/70" />
               <ul className="space-y-3 text-sm leading-6 text-muted-foreground">
                 {readinessPoints.map((point) => (
@@ -354,7 +433,7 @@ export default function Home() {
                 ))}
               </ul>
               <div className="rounded-2xl border border-border/80 bg-secondary/35 px-4 py-4 text-sm leading-6 text-muted-foreground">
-                Current runtime is production-style so wallet hydration and browser extension behavior match real demo conditions more reliably.
+                Both payment paths are ready on Testnet: use Native transfer for direct XLM sends, or Contract mode to create a payment intent onchain.
               </div>
             </CardContent>
           </Card>

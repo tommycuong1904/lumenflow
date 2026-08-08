@@ -1,30 +1,42 @@
 # LumenFlow — Stellar Testnet Payment App
 
-LumenFlow is a simple Stellar Testnet dApp built for the Stellar White Belt challenge. It focuses on the core Level 1 requirements:
+LumenFlow is evolving from a Stellar White Belt / Level 1 payment MVP into a Level 2 Testnet dApp with multi-wallet support and a staged smart-contract payment flow.
 
-- connect a Freighter wallet
+Current live capabilities:
+
+- connect supported Stellar wallets
 - display the connected wallet's XLM balance
 - send a native XLM payment on Stellar Testnet
 - show success or failure feedback after transaction submission
 
+Current integration work in progress:
+
+- Payment Intent contract scaffold under `contracts/payment-intent`
+- frontend contract-mode invoke/read flow and state handling
+- Soroban RPC / contract config path for post-deploy wiring
+
 ## Current Status
 
-The app is implemented, polished, verified end-to-end with a real Freighter wallet on Stellar Testnet, and ready for submission.
+The native transfer path remains live and build-verified. Level 2 contract mode is under active integration and is not yet deploy-complete.
 
-What is complete:
-- Freighter connection flow in the UI, with session persistence across page refresh / new tab (silently restores the connection instead of re-prompting, as long as Freighter access hasn't been revoked)
+What is complete right now:
+- multi-wallet connection foundation in the UI
 - Testnet-only wallet/network checks
 - Horizon-based XLM balance lookup
 - native XLM payment transaction creation
 - explicit **transaction confirmation step** before signing
-- Freighter signing flow integration
+- wallet signing flow integration for the native transfer path
 - transaction submission flow and feedback UI, with a full receipt (Status, Tx hash, Amount, Recipient, Memo, Stellar Expert link)
 - Address Book: save/label/reuse frequent recipient addresses via `localStorage`, with auto-save of the recipient after a successful send
 - clean error, loading, and disabled states
 - responsive layout for mobile and desktop
-- Dark/Light mode, wallet address QR code, and UI animation polish (bonus scope)
+- Dark/Light mode, wallet address QR code, and UI animation polish
+- contract-mode live path, helper files, and env/config wiring for the deployed testnet contract
 
-Manual verification and screenshot capture are both complete — see below.
+Known gap:
+- final end-to-end verification still requires a real browser wallet session for live signing.
+
+Native-flow manual verification and previous screenshot capture are complete — see below.
 
 ## Tech Stack
 
@@ -38,7 +50,7 @@ Manual verification and screenshot capture are both complete — see below.
 ## Requirements Coverage
 
 ### 1. Wallet Setup
-- Freighter wallet is the intended wallet target
+- Supported Stellar wallets can be connected from the app UI
 - App is built specifically for Stellar Testnet
 
 ### 2. Wallet Connection
@@ -54,7 +66,7 @@ Manual verification and screenshot capture are both complete — see below.
 ### 4. Transaction Flow
 - Native XLM payment transaction is created with Stellar SDK
 - Explicit review/confirmation step precedes signing
-- Transaction is signed through Freighter
+- Native transactions are signed through a supported Stellar wallet
 - Signed transaction is submitted to Stellar Testnet
 - Success or failure feedback is shown in the UI
 - Full receipt shown after successful submission: Status, Tx hash, Amount, Recipient, Memo (when provided), and a link to Stellar Expert
@@ -64,20 +76,28 @@ Manual verification and screenshot capture are both complete — see below.
 - QR code for the connected wallet address
 - Entrance/transition animations across the main UI sections
 - Address Book: save frequently used recipient addresses with a label, reuse them with one click, remove them, and auto-save the recipient after every successful send — all stored client-side in `localStorage`
-- Wallet session persistence: staying connected across a page refresh or a new tab, without needing to click Connect again (Freighter only re-prompts if access was actually revoked)
+- Wallet session persistence: staying connected across a page refresh or a new tab, without needing to click Connect again (the wallet only re-prompts if access was actually revoked)
 
 ## Local Setup
 
 ### Prerequisites
 - Node.js 18+ recommended
 - npm
-- Freighter browser extension
+- A supported Stellar browser wallet
 
 ### Install
 
 ```bash
 npm install
 ```
+
+### Environment (optional for Level 2)
+
+```bash
+cp .env.example .env.local
+```
+
+Use this when you want to wire the deployed Payment Intent contract into the frontend.
 
 ### Run development server
 
@@ -107,13 +127,13 @@ npm run start
 
 ## How to Use
 
-1. Open LumenFlow in a browser with Freighter installed.
-2. Switch Freighter to Stellar Testnet.
+1. Open LumenFlow in a browser with a supported Stellar wallet installed.
+2. Switch the wallet to Stellar Testnet.
 3. Connect the wallet.
 4. If the account is unfunded, use Friendbot.
 5. Confirm the XLM balance is visible.
 6. Enter a recipient address and amount.
-7. Sign the transaction in Freighter.
+7. Sign the transaction in your wallet.
 8. Wait for the transaction result and hash.
 
 ## Testnet Notes
@@ -130,7 +150,7 @@ https://friendbot.stellar.org/?addr=<PUBLIC_KEY>
 
 ## Screenshots
 
-All captured with a real Freighter wallet connected on Stellar Testnet.
+These screenshots were captured during the native transfer flow on Stellar Testnet.
 
 ### Core flow
 
@@ -185,6 +205,9 @@ src/
     stellar/
       addressBook.ts
       constants.ts
+      contract.ts
+      contract-payload.ts
+      contract-rpc.ts
       horizon.ts
       submit.ts
       transactions.ts
@@ -204,9 +227,10 @@ docs/
 
 ## Notes
 
-- Manual end-to-end verification was completed with a real Freighter extension on Stellar Testnet (connect, balance, copy address, QR code, send payment, receipt fields, Address Book, session persistence) — all checks passed.
-- This project intentionally expanded beyond strict White Belt / Level 1 minimums to pick up bonus points (see `docs/project-brief.md` and `docs/reference-starter-template.md`), while keeping the core Stellar/Freighter logic untouched.
+- Manual end-to-end verification was completed on Stellar Testnet for the native transfer path (connect, balance, copy address, QR code, send payment, receipt fields, Address Book, session persistence) — all checks passed.
+- The project has now expanded beyond the original Level 1 MVP and is being prepared for contract-backed Level 2 flow while preserving the stable native transfer path.
 - Future expansion can build on the same `LumenFlow` product line if later challenge levels allow it (e.g. evolving into a Payment Tracker or Approval-to-Settlement Workflow).
+- When `stellar-cli` finishes installing, use [`docs/contract-deploy-checklist.md`](docs/contract-deploy-checklist.md) as the next-step runbook.
 
 ## Repository
 
