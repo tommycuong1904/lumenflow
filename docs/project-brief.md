@@ -1,30 +1,32 @@
 # LumenFlow Project Brief
 
 ## Goal
-Build a Stellar Testnet payment app that can:
-- connect a Freighter wallet
-- display XLM balance
-- send an XLM transaction on Testnet
-- show success or failure feedback with transaction confirmation details
-
-## Current submission target
-Stellar White Belt / Level 1.
+Build a submission-ready Stellar White Belt / Level 1 app that can:
+- connect and disconnect Freighter
+- display XLM balance on Stellar Testnet
+- send native XLM on Testnet
+- show clear success/failure feedback with transaction confirmation details
 
 ## Product framing
-LumenFlow is a simple Stellar Testnet payment app focused on a clean wallet-to-payment flow.
+LumenFlow is a small frontend-only Stellar Testnet payment app focused on a clean wallet → balance → send-payment flow.
+
+## Stable architecture
+- Next.js App Router frontend-only application
+- one main page for wallet, balance, and payment flow
+- shared Stellar helpers under `src/lib/stellar/`
+- presentational components under `src/components/`
+- Freighter-only wallet scope
+- XLM-only payment scope
 
 ## In scope
 - Freighter connect/disconnect
 - Testnet-only UX
-- account funded/unfunded handling
+- funded/unfunded account handling
 - XLM balance display
 - XLM payment form
-- transaction result state and hash/confirmation
+- transaction result state and hash / confirmation
 - README and submission screenshots
-- Dark/Light mode toggle (bonus)
-- QR code for wallet address (bonus)
-- UI animations/transitions polish (bonus)
-- Address Book: save/reuse frequent recipient addresses via localStorage (bonus)
+- bonus UX already implemented: Dark/Light mode, QR code, animations, Address Book, session persistence
 
 ## Out of scope
 - multiple wallet providers
@@ -33,16 +35,15 @@ LumenFlow is a simple Stellar Testnet payment app focused on a clean wallet-to-p
 - smart contracts
 - backend/database
 - auth
-- marketplace features
-- advanced analytics
+- marketplace or analytics features
 
 ## Definition of done
 - app builds successfully
 - Freighter connection works
 - XLM balance renders correctly
-- XLM testnet payment succeeds
+- XLM Testnet payment succeeds
 - success/failure states render clearly
-- submission-ready README and screenshots can be produced
-- dark/light mode toggle works and persists user choice
-- QR code renders for the connected wallet address
-- key interactions have smooth, non-distracting animation
+- submission-ready README and screenshots exist
+
+## Official requirements
+`docs/challenge.md` is the immutable source of truth for White Belt requirements. Read it only when requirement wording matters.
