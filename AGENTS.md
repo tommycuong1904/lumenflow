@@ -23,6 +23,23 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Read `docs/reference-starter-template.md` only when the user asks about bonus features, scoring, or scope expansion.
 - Read only the source files needed for the current task.
 
+## Lightweight task routing
+- Support these short aliases at the start of a user task:
+  - `bug:` — fix broken behavior
+  - `ui:` — visual, layout, or styling change
+  - `feature:` — add a new capability or flow
+  - `investigate:` — diagnose or find root cause
+  - `review:` — audit without edits unless explicitly requested
+  - `release:` — pre-submission verification
+- Treat everything after the alias as the task instruction.
+- Accept Vietnamese or English instructions without asking for translation.
+- Infer the smallest relevant scope from the existing implementation.
+- Inspect the nearest existing implementation before editing.
+- Prefer existing project patterns over introducing new ones.
+- Do not output an implementation plan for routine tasks unless requested.
+- Ask for clarification only when a missing decision would materially change the result.
+- Do not suggest additional work when the requested task is already complete.
+
 ## Project constraints
 - Keep scope aligned with Stellar White Belt / Level 1 unless the user explicitly expands it.
 - Preserve the current architecture: Next.js App Router frontend-only app, one main flow, shared Stellar helpers under `src/lib/stellar/`, presentational UI under `src/components/`.
@@ -42,11 +59,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Update `docs/progress.md` after meaningful project changes.
 - Do not modify `docs/challenge.md`.
 - Prefer concise responses by default: result, files changed, validation, blockers.
+- Do not explain implementation details or paste applied code unless requested.
 
 ## Security
 - Never expose secrets, seed phrases, private keys, or `.env` values.
 - Do not read `.env` files unless the task specifically requires environment variable names.
 - Client code may use only explicitly public environment variables.
-
-## Expected deliverable
-A submission-ready Stellar White Belt app with wallet connect/disconnect, XLM balance, XLM payment flow, clear transaction feedback, and concise supporting docs.
