@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { buttonVariants, Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AddressBook } from "@/components/AddressBook";
 import { getPaymentIntentConfig } from "@/lib/stellar/contract";
 import type { SendFormState, TxState, WalletState } from "@/lib/stellar/types";
+import { cn } from "@/lib/utils";
 
 type SendPaymentFormProps = {
   wallet: WalletState;
@@ -73,30 +74,48 @@ export function SendPaymentForm({
           <div className="grid gap-2">
             <Label className="text-sm font-medium text-foreground">Transfer mode</Label>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Button
-                type="button"
-                variant={form.mode === "native_transfer" ? "default" : "outline"}
-                onClick={() => onChange({ mode: "native_transfer" })}
-                disabled={isBusy || isConfirming}
-                className="justify-start rounded-2xl px-4 py-6 text-left"
+              <label
+                className={cn(
+                  buttonVariants({ variant: form.mode === "native_transfer" ? "default" : "outline" }),
+                  "relative h-auto cursor-pointer justify-start rounded-2xl px-4 py-6 text-left",
+                  (isBusy || isConfirming) && "pointer-events-none opacity-50"
+                )}
               >
+                <input
+                  type="radio"
+                  name="transfer-mode"
+                  value="native_transfer"
+                  checked={form.mode === "native_transfer"}
+                  onChange={() => onChange({ mode: "native_transfer" })}
+                  disabled={isBusy || isConfirming}
+                  className="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none opacity-0"
+                />
                 <span className="flex flex-col items-start gap-1">
                   <span>Native transfer</span>
                   <span className="text-xs font-normal opacity-80">Send XLM directly on Testnet</span>
                 </span>
-              </Button>
-              <Button
-                type="button"
-                variant={form.mode === "contract" ? "default" : "outline"}
-                onClick={() => onChange({ mode: "contract" })}
-                disabled={!contractReady || isBusy || isConfirming}
-                className="justify-start rounded-2xl px-4 py-6 text-left"
+              </label>
+              <label
+                className={cn(
+                  buttonVariants({ variant: form.mode === "contract" ? "default" : "outline" }),
+                  "relative h-auto cursor-pointer justify-start rounded-2xl px-4 py-6 text-left",
+                  (!contractReady || isBusy || isConfirming) && "pointer-events-none opacity-50"
+                )}
               >
+                <input
+                  type="radio"
+                  name="transfer-mode"
+                  value="contract"
+                  checked={form.mode === "contract"}
+                  onChange={() => onChange({ mode: "contract" })}
+                  disabled={!contractReady || isBusy || isConfirming}
+                  className="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none opacity-0"
+                />
                 <span className="flex flex-col items-start gap-1">
                   <span>Contract mode</span>
                   <span className="text-xs font-normal opacity-80">Create a payment intent onchain</span>
                 </span>
-              </Button>
+              </label>
             </div>
           </div>
           <div className="grid gap-2">
