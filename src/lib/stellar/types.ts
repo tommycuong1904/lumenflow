@@ -6,9 +6,9 @@ export type WalletState = {
   walletId?: string | null;
   walletName?: string | null;
   loading: boolean;
+  restoring?: boolean;
   error: string | null;
 };
-
 export type BalanceState = {
   xlm: string | null;
   funded: boolean;

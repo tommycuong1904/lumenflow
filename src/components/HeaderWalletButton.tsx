@@ -43,10 +43,10 @@ export function HeaderWalletButton() {
       <Button
         type="button"
         onClick={() => void connectWallet()}
-        disabled={wallet.loading}
+        disabled={wallet.loading || wallet.restoring}
         className="rounded-full bg-primary px-5 text-primary-foreground hover:bg-[#7c3aed]"
       >
-        {wallet.loading ? "Connecting..." : "Connect wallet"}
+        {wallet.restoring ? "Restoring wallet..." : wallet.loading ? "Connecting..." : "Connect wallet"}
       </Button>
     );
   }

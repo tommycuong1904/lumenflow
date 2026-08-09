@@ -107,10 +107,10 @@ export function WalletCard({ wallet, onConnect, onDisconnect }: WalletCardProps)
               type="button"
               size="lg"
               onClick={onConnect}
-              disabled={wallet.loading}
+              disabled={wallet.loading || wallet.restoring}
               className="w-full rounded-full bg-primary px-5 text-primary-foreground hover:bg-[#7c3aed] sm:w-auto"
             >
-              {wallet.loading ? "Connecting..." : "Connect wallet"}
+              {wallet.restoring ? "Restoring wallet..." : wallet.loading ? "Connecting..." : "Connect wallet"}
             </Button>
           )}
         </CardAction>
@@ -123,7 +123,7 @@ export function WalletCard({ wallet, onConnect, onDisconnect }: WalletCardProps)
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">Connection</p>
                 <p className="mt-2 break-all text-sm font-medium text-foreground">
-                  {wallet.connected && wallet.publicKey ? truncateAddress(wallet.publicKey) : "Not connected"}
+                  {wallet.connected && wallet.publicKey ? truncateAddress(wallet.publicKey) : wallet.restoring ? "Restoring previous wallet session..." : "Not connected"}
                 </p>
               </div>
               {wallet.connected && wallet.publicKey ? (

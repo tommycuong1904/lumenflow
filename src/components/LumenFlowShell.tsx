@@ -9,18 +9,27 @@ import type { WalletState } from "@/lib/stellar/types";
 
 const WALLET_SESSION_KEY = "lumenflow_wallet_session";
 
+type PersistedWalletSession = {
+  publicKey: string;
+  network: string | null;
+  networkPassphrase: string | null;
+  walletId?: string | null;
+  walletName?: string | null;
+};
+
 const initialWalletState: WalletState = {
   connected: false,
   publicKey: null,
   network: null,
   networkPassphrase: null,
   loading: false,
+  restoring: true,
   error: null,
 };
 
 type WalletContextValue = {
   wallet: WalletState;
-  connectWallet: (options?: { silent?: boolean }) => Promise<void>;
+  connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
   clearWalletError: () => void;
 };
@@ -39,51 +48,79 @@ export function LumenFlowShell({ children }: { children: ReactNode }) {
   const [wallet, setWallet] = useState<WalletState>(initialWalletState);
 
   useEffect(() => {
-    const hadSession = window.localStorage.getItem(WALLET_SESSION_KEY) === "connected";
-    if (!hadSession) return;
-    void handleConnect({ silent: true });
+    const rawSession = window.localStorage.getItem(WALLET_SESSION_KEY);
+
+    if (!rawSession) {
+      setWallet((current) => ({ ...current, restoring: false }));
+      return;
+    }
+
+    try {
+      const session = JSON.parse(rawSession) as PersistedWalletSession;
+      if (!session.publicKey) {
+        throw new Error("Missing publicKey in wallet session.");
+      }
+
+      setWallet({
+        connected: true,
+        publicKey: session.publicKey,
+        network: session.network,
+        networkPassphrase: session.networkPassphrase,
+        walletId: session.walletId ?? null,
+        walletName: session.walletName ?? null,
+        loading: false,
+        restoring: false,
+        error: null,
+      });
+    } catch {
+      window.localStorage.removeItem(WALLET_SESSION_KEY);
+      setWallet({ ...initialWalletState, restoring: false });
+    }
   }, []);
 
-  async function handleConnect(options?: { silent?: boolean }) {
-    const silent = options?.silent ?? false;
-    setWallet((current) => ({ ...current, loading: !silent, error: null }));
+  async function handleConnect() {
+    setWallet((current) => ({ ...current, loading: true, restoring: false, error: null }));
 
     try {
       const result = await connectWallet();
 
       if ("error" in result) {
-        if (silent) {
-          window.localStorage.removeItem(WALLET_SESSION_KEY);
-          setWallet(initialWalletState);
-          return;
-        }
-
         setWallet((current) => ({
           ...current,
           connected: false,
           loading: false,
+          restoring: false,
           error: result.error ?? "Could not connect to a Stellar wallet.",
         }));
         return;
       }
 
       if (!result.isTestnet || result.networkPassphrase !== NETWORK_PASSPHRASE) {
-        if (silent) {
-          window.localStorage.removeItem(WALLET_SESSION_KEY);
-        }
-
         setWallet({
           connected: false,
           publicKey: null,
           network: result.network,
           networkPassphrase: result.networkPassphrase,
+          walletId: result.walletId ?? null,
+          walletName: result.walletName ?? null,
           loading: false,
-          error: silent ? null : "Please switch Freighter to Stellar Testnet before using LumenFlow.",
+          restoring: false,
+          error: "Please switch Freighter to Stellar Testnet before using LumenFlow.",
         });
         return;
       }
 
-      window.localStorage.setItem(WALLET_SESSION_KEY, "connected");
+      window.localStorage.setItem(
+        WALLET_SESSION_KEY,
+        JSON.stringify({
+          publicKey: result.address,
+          network: result.network,
+          networkPassphrase: result.networkPassphrase,
+          walletId: result.walletId ?? null,
+          walletName: result.walletName ?? null,
+        } satisfies PersistedWalletSession),
+      );
+
       setWallet({
         connected: true,
         publicKey: result.address,
@@ -92,20 +129,16 @@ export function LumenFlowShell({ children }: { children: ReactNode }) {
         walletId: result.walletId ?? null,
         walletName: result.walletName ?? null,
         loading: false,
+        restoring: false,
         error: null,
       });
     } catch (error) {
-      if (silent) {
-        window.localStorage.removeItem(WALLET_SESSION_KEY);
-        setWallet(initialWalletState);
-        return;
-      }
-
       const message = error instanceof Error ? error.message : "Could not connect to Freighter right now. Please try again.";
       setWallet((current) => ({
         ...current,
         connected: false,
         loading: false,
+        restoring: false,
         error: message,
       }));
     }
@@ -114,7 +147,7 @@ export function LumenFlowShell({ children }: { children: ReactNode }) {
   function handleDisconnect() {
     window.localStorage.removeItem(WALLET_SESSION_KEY);
     void disconnectWallet();
-    setWallet(initialWalletState);
+    setWallet({ ...initialWalletState, restoring: false });
   }
 
   function clearWalletError() {
