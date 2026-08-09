@@ -1,16 +1,17 @@
 # LumenFlow Progress Tracker
 
 ## Current Status
-Level 2 contract mode is deployed, wired live, and manually verified on the website.
+Level 2 contract mode is deployed, wired live, and manually verified on both the website flow and the public Vercel deployment. Wallet session restore after refresh was also fixed and re-verified.
 
 ## Current State
-- Working branch: `feat/level2-multiwallet-foundation`
+- Working branch: `main`
 - Multi-wallet foundation is integrated.
 - Native XLM transfer flow remains live.
 - Payment Intent contract is deployed to Stellar Testnet.
-- Frontend contract mode is wired to live invoke/read flow.
-- Wallet connection was re-verified after restarting the stale preview process.
-- Contract mode was manually tested successfully in the website flow.
+- Frontend contract mode is wired to the live invoke/read flow.
+- Vercel production now has the required public contract env vars.
+- Contract mode was re-verified on the public Vercel app after env setup.
+- Wallet session restore after `F5` now keeps the connected state without reopening the wallet picker.
 
 ## Deployment Artifacts
 - Contract ID: `CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO`
@@ -24,9 +25,10 @@ Level 2 contract mode is deployed, wired live, and manually verified on the webs
 - Contract deployed successfully to Stellar Testnet.
 - Native transfer flow remains preserved.
 - Contract-mode frontend invoke/read wiring is build-verified.
-- Website preview on port `3002` was restarted cleanly after stale-bundle drift.
+- Public Vercel deployment was checked directly to confirm contract mode enablement after env setup.
 - Wallet connect was confirmed working again on the live website.
 - Contract mode was confirmed working in live website testing.
+- Refreshing after wallet connect no longer reopens wallet options or drops the UI into a disconnected prompt state.
 
 ## Blockers
 - No current code blocker for Level 2 core flow.
@@ -34,13 +36,13 @@ Level 2 contract mode is deployed, wired live, and manually verified on the webs
 
 ## Branch / Repo State
 - Base branch: `main`
-- Active working branch: `feat/level2-multiwallet-foundation`
-- Current work is intentionally not being done directly on `main`.
+- Active branch: `main`
+- Latest verified fix on remote: `75c922e` (`fix: restore wallet session without reopening picker`)
 
 ## Remaining Work
 - Optional UI/copy polish based on real usage.
 - Optional final documentation cleanup.
-- Optional commit / PR preparation.
+- Optional submission packaging / checklist refresh.
 
 ## Scope Notes
 - Native transfer remains stable alongside the live Level 2 contract path.
