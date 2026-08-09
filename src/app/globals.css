@@ -150,3 +150,145 @@ a {
     @apply font-sans;
   }
 }
+
+.stellar-wallets-kit {
+  backdrop-filter: blur(18px);
+}
+
+.stellar-wallets-kit > section {
+  width: min(100%, 29rem);
+  max-width: 29rem;
+  max-height: min(44rem, calc(100vh - 2rem));
+  border: 1px solid color-mix(in srgb, var(--swk-border) 90%, transparent);
+  box-shadow: 0 32px 90px rgba(2, 6, 23, 0.42);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.stellar-wallets-kit > section > div:first-child {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--swk-background) 96%, transparent), color-mix(in srgb, var(--swk-background) 84%, transparent));
+  border-bottom: 1px solid color-mix(in srgb, var(--swk-border) 70%, transparent);
+}
+
+.stellar-wallets-kit h1 {
+  font-size: 1.02rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+}
+
+.stellar-wallets-kit ul {
+  padding: 1rem !important;
+  gap: 0.75rem !important;
+}
+
+.stellar-wallets-kit li {
+  min-height: 4.1rem;
+  padding: 0.72rem 0.8rem !important;
+  border-radius: 1rem !important;
+  border: 1px solid color-mix(in srgb, var(--swk-border) 82%, transparent) !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--swk-background-secondary) 94%, transparent), color-mix(in srgb, var(--swk-background) 99%, transparent)) !important;
+  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.12);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.stellar-wallets-kit li:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--swk-primary) 52%, var(--swk-border)) !important;
+  box-shadow: 0 14px 32px rgba(2, 6, 23, 0.18);
+}
+
+.stellar-wallets-kit li:active {
+  transform: translateY(0);
+}
+
+.stellar-wallets-kit li:has(small) {
+  opacity: 0.92;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--swk-background-secondary) 80%, transparent), color-mix(in srgb, var(--swk-background) 92%, transparent)) !important;
+}
+
+.stellar-wallets-kit li:has(small):hover {
+  opacity: 1;
+}
+
+.stellar-wallets-kit li p {
+  letter-spacing: -0.01em;
+}
+
+.stellar-wallets-kit li small {
+  padding: 0.35rem 0.65rem !important;
+  border-radius: 999px !important;
+  border-color: color-mix(in srgb, var(--swk-primary) 26%, var(--swk-border)) !important;
+  background: color-mix(in srgb, var(--swk-primary) 12%, var(--swk-background-secondary)) !important;
+  color: var(--swk-foreground-strong) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.stellar-wallets-kit li small svg {
+  width: 0.9rem !important;
+  height: 0.9rem !important;
+  margin-left: 0.35rem;
+}
+
+.stellar-wallets-kit img {
+  border-radius: 999px;
+}
+
+.stellar-wallets-kit footer {
+  padding: 0.45rem 0.7rem !important;
+  border-top-color: color-mix(in srgb, var(--swk-border) 65%, transparent) !important;
+}
+
+.stellar-wallets-kit footer p {
+  font-size: 0.69rem !important;
+  color: color-mix(in srgb, var(--swk-foreground-secondary) 88%, transparent) !important;
+  letter-spacing: 0.01em;
+}
+
+.stellar-wallets-kit footer a {
+  font-size: 0.69rem !important;
+  text-underline-offset: 0.18rem;
+}
+
+.stellar-wallets-kit > section {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--swk-primary) 45%, var(--swk-border)) transparent;
+}
+
+.stellar-wallets-kit > section::-webkit-scrollbar {
+  width: 10px;
+}
+
+.stellar-wallets-kit > section::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.stellar-wallets-kit > section::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--swk-primary) 55%, var(--swk-light-gray)), color-mix(in srgb, var(--swk-primary) 28%, var(--swk-border)));
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.stellar-wallets-kit > section::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--swk-primary) 72%, var(--swk-light-gray)), color-mix(in srgb, var(--swk-primary) 40%, var(--swk-border)));
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.light .stellar-wallets-kit > section {
+  box-shadow: 0 28px 72px rgba(15, 23, 42, 0.18);
+}
+
+.light .stellar-wallets-kit li {
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
