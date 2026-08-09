@@ -8,30 +8,14 @@ import { WalletCard } from "@/components/WalletCard";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { NETWORK_PASSPHRASE } from "@/lib/stellar/constants";
+import { useLumenFlowWallet } from "@/components/LumenFlowShell";
 import { getXlmBalance } from "@/lib/stellar/horizon";
 import { getPaymentIntentRecord, getSorobanTransaction, submitSignedContractTransaction, createPaymentIntentTransactionXdr } from "@/lib/stellar/contract-rpc";
 import { submitSignedTransaction } from "@/lib/stellar/submit";
-import type {
-  BalanceState,
-  FreighterDebugEvent,
-  SendFormState,
-  TxState,
-  WalletState,
-} from "@/lib/stellar/types";
+import type { BalanceState, SendFormState, TxState } from "@/lib/stellar/types";
 import { createPaymentTransaction } from "@/lib/stellar/transactions";
 import { isValidAmount, isValidPublicKey } from "@/lib/stellar/validation";
-import { connectWallet, disconnectWallet, signWalletTransaction } from "@/lib/stellar/wallet";
-
-const initialWalletState: WalletState = {
-  connected: false,
-  publicKey: null,
-  network: null,
-  networkPassphrase: null,
-  loading: false,
-  error: null,
-};
+import { signWalletTransaction } from "@/lib/stellar/wallet";
 
 const initialBalanceState: BalanceState = {
   xlm: null,
@@ -62,50 +46,22 @@ const readinessPoints = [
   "Create payment intents with contract mode",
 ];
 
-const WALLET_SESSION_KEY = "lumenflow_wallet_session";
-
 export default function Home() {
-  const [wallet, setWallet] = useState<WalletState>(initialWalletState);
+  const { wallet, connectWallet, disconnectWallet, clearWalletError } = useLumenFlowWallet();
   const [balance, setBalance] = useState<BalanceState>(initialBalanceState);
   const [tx, setTx] = useState<TxState>(initialTxState);
   const [form, setForm] = useState<SendFormState>(initialFormState);
-  const [walletDebug, setWalletDebug] = useState<FreighterDebugEvent[]>([]);
   const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [reactClickCount, setReactClickCount] = useState(0);
-  const [nativeClickCount, setNativeClickCount] = useState(0);
-  const [lastNativeClickAt, setLastNativeClickAt] = useState<string | null>(null);
 
   const canRefreshBalance = useMemo(() => Boolean(wallet.publicKey), [wallet.publicKey]);
 
   useEffect(() => {
-    setMounted(true);
-
-    const hadSession = window.localStorage.getItem(WALLET_SESSION_KEY) === "connected";
-    if (!hadSession) return;
-
-    // Silently attempt to restore the wallet session without prompting the
-    // user again — Freighter only re-prompts if access was revoked or the
-    // account changed, otherwise getAddress() resolves immediately.
-    void handleConnect({ silent: true });
-  }, []);
-
-  useEffect(() => {
-    const button = document.getElementById("freighter-connect-button");
-    if (!button) return;
-
-    const handleNativeClick = () => {
-      const timestamp = new Date().toISOString();
-      setNativeClickCount((count) => count + 1);
-      setLastNativeClickAt(timestamp);
-      console.log("[LumenFlow][NativeButtonClick]", timestamp);
-    };
-
-    button.addEventListener("click", handleNativeClick);
-    return () => {
-      button.removeEventListener("click", handleNativeClick);
-    };
-  }, [wallet.connected, wallet.loading]);
+    if (!wallet.publicKey) {
+      setBalance(initialBalanceState);
+      return;
+    }
+    void refreshBalance(wallet.publicKey);
+  }, [wallet.publicKey]);
 
   async function refreshBalance(publicKey = wallet.publicKey) {
     if (!publicKey) return;
@@ -129,98 +85,17 @@ export default function Home() {
     }
   }
 
-  async function handleConnect(options?: { silent?: boolean }) {
-    const silent = options?.silent ?? false;
-    const clickedAt = new Date().toISOString();
-    if (!silent) {
-      setReactClickCount((count) => count + 1);
-      setWalletDebug([{ step: "click", detail: `Connect clicked at ${clickedAt}` }]);
-    }
-    setWallet((current) => ({ ...current, loading: !silent, error: null }));
-    console.log("[LumenFlow][ReactHandleConnect]", clickedAt, silent ? "(silent restore)" : "");
-
-    try {
-      const result = await connectWallet();
-      if (result.debug && !silent) {
-        setWalletDebug((current) => [...current, ...result.debug]);
-        console.log("[LumenFlow][FreighterDebug]", result.debug);
-      }
-
-      if ("error" in result) {
-        if (silent) {
-          // Session could not be silently restored (revoked access, no
-          // Freighter, etc.) — clear the stale session flag and stay idle.
-          window.localStorage.removeItem(WALLET_SESSION_KEY);
-          setWallet(initialWalletState);
-          return;
-        }
-        setWallet((current) => ({
-          ...current,
-          loading: false,
-          connected: false,
-          error: result.error ?? "Could not connect to a Stellar wallet.",
-        }));
-        return;
-      }
-
-      if (!result.isTestnet || result.networkPassphrase !== NETWORK_PASSPHRASE) {
-        if (silent) {
-          window.localStorage.removeItem(WALLET_SESSION_KEY);
-        }
-        setWallet({
-          connected: false,
-          publicKey: null,
-          network: result.network,
-          networkPassphrase: result.networkPassphrase,
-          loading: false,
-          error: silent ? null : "Please switch Freighter to Stellar Testnet before using LumenFlow.",
-        });
-        return;
-      }
-
-      window.localStorage.setItem(WALLET_SESSION_KEY, "connected");
-      setWallet({
-        connected: true,
-        publicKey: result.address,
-        network: result.network,
-        networkPassphrase: result.networkPassphrase,
-        walletId: result.walletId ?? null,
-        walletName: result.walletName ?? null,
-        loading: false,
-        error: null,
-      });
-
-      await refreshBalance(result.address);
-    } catch (error) {
-      if (silent) {
-        window.localStorage.removeItem(WALLET_SESSION_KEY);
-        setWallet(initialWalletState);
-        return;
-      }
-      const message = error instanceof Error ? error.message : "Could not connect to Freighter right now. Please try again.";
-      setWallet((current) => ({
-        ...current,
-        loading: false,
-        connected: false,
-        error: message,
-      }));
-      setWalletDebug((current) => [...current, { step: "exception", detail: message }]);
-      console.error("[LumenFlow][FreighterDebug][Exception]", error);
-    }
+  async function handleConnect() {
+    clearWalletError();
+    await connectWallet();
   }
 
   function handleDisconnect() {
-    window.localStorage.removeItem(WALLET_SESSION_KEY);
-    void disconnectWallet();
-    setWallet(initialWalletState);
+    disconnectWallet();
     setBalance(initialBalanceState);
     setTx(initialTxState);
     setForm(initialFormState);
-    setWalletDebug([]);
     setIsConfirmingPayment(false);
-    setReactClickCount(0);
-    setNativeClickCount(0);
-    setLastNativeClickAt(null);
   }
 
   function handleSubmit() {
@@ -387,10 +262,7 @@ export default function Home() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-8 sm:px-8 lg:px-10">
-      <div className="mb-4 flex justify-end">
-        <ThemeToggle />
-      </div>
-      <section className="relative overflow-hidden rounded-[32px] border border-border/80 bg-card/90 shadow-[0_32px_120px_rgba(4,8,20,0.4)] backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <section className="relative overflow-hidden rounded-[32px] border border-border/80 bg-card/90 shadow-[var(--surface-shadow-hero)] backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2 duration-500">
         <div className="relative grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[1.4fr_0.8fr] lg:px-10 lg:py-10">
           <div className="space-y-5">
             <Badge variant="outline" className="border-primary/20 bg-primary/8 px-3 py-1 text-[11px] tracking-[0.24em] text-primary uppercase">
@@ -406,7 +278,7 @@ export default function Home() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Badge variant="outline" className="border-border bg-secondary/45 px-3 py-1 text-sm text-secondary-foreground">
-Multi-wallet ready
+                Multi-wallet ready
               </Badge>
               <Badge variant="outline" className="border-border bg-secondary/45 px-3 py-1 text-sm text-secondary-foreground">
                 Testnet only
@@ -440,7 +312,7 @@ Multi-wallet ready
         </div>
       </section>
 
-      <section className="mt-8 grid gap-8 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:100ms]">
+      <section id="wallet-section" className="mt-8 scroll-mt-32 grid gap-8 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:100ms]">
         <WalletCard
           wallet={wallet}
           onConnect={handleConnect}
@@ -453,7 +325,7 @@ Multi-wallet ready
         />
       </section>
 
-      <section className="mt-8 grid gap-8 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:200ms]">
+      <section id="payment-section" className="mt-8 scroll-mt-32 grid gap-8 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:200ms]">
         <SendPaymentForm
           wallet={wallet}
           form={form}

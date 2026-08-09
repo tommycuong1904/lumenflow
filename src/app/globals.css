@@ -36,6 +36,8 @@
   --sidebar-accent-foreground: #f5f7fb;
   --sidebar-border: #26283a;
   --sidebar-ring: #8b5cf6;
+  --surface-shadow-hero: 0 32px 120px rgba(4, 8, 20, 0.4);
+  --surface-shadow-card: 0 24px 80px rgba(4, 8, 20, 0.35);
 }
 
 .light {
@@ -66,6 +68,8 @@
   --sidebar-accent-foreground: #14121f;
   --sidebar-border: #ded9ef;
   --sidebar-ring: #6d28d9;
+  --surface-shadow-hero: 0 18px 52px rgba(67, 56, 202, 0.12);
+  --surface-shadow-card: 0 12px 32px rgba(67, 56, 202, 0.1);
 }
 
 @theme inline {
@@ -120,6 +124,16 @@
 html,
 body {
   min-height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 8rem;
+}
+
+#wallet-section,
+#payment-section {
+  scroll-margin-top: 8rem;
 }
 
 body {
