@@ -11,7 +11,7 @@ Level 2 core requirements are implemented and verified:
 - Payment Intent contract is deployed on Stellar Testnet
 - contract mode is called from the frontend
 - transaction states are visible in the UI (`validating`, `signing`, `submitting`, `success`, `error`)
-- website flow was manually tested successfully on the live app
+- website flow was manually tested successfully on the live app, including the public Vercel deployment
 
 ## Live capabilities
 
@@ -55,13 +55,6 @@ Level 2 core requirements are implemented and verified:
 - Contract explorer link:
   - https://lab.stellar.org/r/testnet/contract/CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO
 
-### Verifiable contract call
-- Contract call transaction hash:
-  - `1d910b784a363a499c23265397cddbbcba77540e25f9d72ec9c440dced40401e`
-- Stellar Expert link:
-  - https://stellar.expert/explorer/testnet/tx/1d910b784a363a499c23265397cddbbcba77540e25f9d72ec9c440dced40401e
-
-> Note: the repo now contains the deployed contract ID and live frontend contract path. If you want a separate contract-call transaction hash distinct from the deploy transaction for submission optics, capture one more successful contract-mode call from the website and add its hash here.
 
 ## Tech Stack
 
@@ -119,10 +112,10 @@ npm run build
 npm run start
 ```
 
-### Current live preview used for verification
+### Public demo
 
 ```text
-http://156.67.24.44:3002/
+https://lumenflow-one.vercel.app/
 ```
 
 ## How to use
