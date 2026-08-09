@@ -63,7 +63,7 @@ export function HeaderWalletButton() {
         <span className="ml-2 text-xs">▼</span>
       </Button>
       {menuOpen ? (
-        <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-border bg-card/95 p-2 shadow-[0_18px_48px_rgba(4,8,20,0.35)] backdrop-blur-xl">
+        <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-border bg-card/95 p-2 shadow-[var(--surface-shadow-card)] backdrop-blur-xl">
           <button
             type="button"
             onClick={() => void handleCopy()}

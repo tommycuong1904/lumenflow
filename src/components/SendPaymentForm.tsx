@@ -52,7 +52,7 @@ export function SendPaymentForm({
     : "Connect your Stellar wallet on Testnet before reviewing or sending a payment.";
 
   return (
-    <Card className="rounded-3xl border border-border/80 bg-card/90 shadow-[0_24px_80px_rgba(4,8,20,0.35)] backdrop-blur-sm">
+    <Card className="rounded-3xl border border-border/80 bg-card/90 shadow-[var(--surface-shadow-card)] backdrop-blur-sm">
       <CardHeader className="space-y-2 px-6 pt-6 pb-0 sm:px-7">
         <Badge variant="outline" className="w-fit border-primary/20 bg-primary/8 px-3 py-1 text-[11px] tracking-[0.24em] text-primary uppercase">
           Payment
