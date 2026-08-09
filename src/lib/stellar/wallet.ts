@@ -1,6 +1,6 @@
 import { StellarWalletsKit } from "@creit.tech/stellar-wallets-kit/sdk";
 import { defaultModules } from "@creit.tech/stellar-wallets-kit/modules/utils";
-import { KitEventType, type ISupportedWallet, Networks } from "@creit.tech/stellar-wallets-kit/types";
+import { KitEventType, type ISupportedWallet, Networks, type SwkAppTheme } from "@creit.tech/stellar-wallets-kit/types";
 import { NETWORK_PASSPHRASE, TESTNET_NETWORK_NAME } from "./constants";
 import type { FreighterDebugEvent } from "./types";
 
@@ -33,8 +33,56 @@ let selectedWalletId: string | null = null;
 let selectedWalletName: string | null = null;
 let supportedWalletsCache: ISupportedWallet[] = [];
 
+const swkLightTheme: SwkAppTheme = {
+  background: "rgba(255,255,255,0.98)",
+  "background-secondary": "#f8fafc",
+  "foreground-strong": "#020617",
+  foreground: "#0f172a",
+  "foreground-secondary": "#475569",
+  primary: "#7c3aed",
+  "primary-foreground": "#ffffff",
+  transparent: "rgba(0, 0, 0, 0)",
+  lighter: "#ffffff",
+  light: "#f8fafc",
+  "light-gray": "#e2e8f0",
+  gray: "#94a3b8",
+  danger: "#ef4444",
+  border: "rgba(15, 23, 42, 0.12)",
+  shadow: "0 28px 80px rgba(15, 23, 42, 0.18)",
+  "border-radius": "1.25rem",
+  "font-family": "Inter, ui-sans-serif, system-ui, sans-serif",
+};
+
+const swkDarkTheme: SwkAppTheme = {
+  background: "rgba(2, 6, 23, 0.98)",
+  "background-secondary": "#0f172a",
+  "foreground-strong": "#f8fafc",
+  foreground: "#e2e8f0",
+  "foreground-secondary": "#94a3b8",
+  primary: "#8b5cf6",
+  "primary-foreground": "#ffffff",
+  transparent: "rgba(0, 0, 0, 0)",
+  lighter: "#ffffff",
+  light: "#1e293b",
+  "light-gray": "#334155",
+  gray: "#64748b",
+  danger: "#f87171",
+  border: "rgba(148, 163, 184, 0.22)",
+  shadow: "0 36px 110px rgba(2, 6, 23, 0.62)",
+  "border-radius": "1.25rem",
+  "font-family": "Inter, ui-sans-serif, system-ui, sans-serif",
+};
+
 function event(step: string, detail: string): FreighterDebugEvent {
   return { step, detail };
+}
+
+function getWalletKitTheme(): SwkAppTheme {
+  if (typeof document === "undefined") {
+    return swkDarkTheme;
+  }
+
+  return document.documentElement.classList.contains("dark") ? swkDarkTheme : swkLightTheme;
 }
 
 function initKit() {
@@ -43,6 +91,7 @@ function initKit() {
   StellarWalletsKit.init({
     modules: defaultModules(),
     network: Networks.TESTNET,
+    theme: getWalletKitTheme(),
     authModal: {
       showInstallLabel: true,
       hideUnsupportedWallets: false,
@@ -95,6 +144,7 @@ function mapSigningError(error: unknown) {
 
 export async function connectWallet(): Promise<ConnectWalletSuccess | ConnectWalletFailure> {
   initKit();
+  StellarWalletsKit.setTheme(getWalletKitTheme());
   const debug: FreighterDebugEvent[] = [];
   debug.push(event("environment", typeof window === "undefined" ? "window is undefined" : `window available on ${window.location.origin}`));
 

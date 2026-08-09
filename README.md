@@ -157,6 +157,7 @@ Current screenshot set in the repo:
 - transaction success
 - unfunded / Friendbot state
 - disconnected state
+- wallet options available
 - dark/light mode
 - wallet QR code
 - Address Book
@@ -175,13 +176,17 @@ Current screenshot set in the repo:
 |---|---|
 | ![Friendbot unfunded state](docs/screenshots/05-friendbot-unfunded-state.png) | ![Wallet disconnected state](docs/screenshots/06-wallet-disconnected-state.png) |
 
+| Wallet options available |
+|---|
+| ![Wallet options available](docs/screenshots/10-wallet-options-available.png) |
+
 | Dark / Light mode | Wallet QR code | Address Book |
 |---|---|---|
 | ![Dark and light mode](docs/screenshots/07-dark-light-mode.png) | ![Wallet QR code](docs/screenshots/08-wallet-qr-code.png) | ![Address Book](docs/screenshots/09-address-book.png) |
 
 ### Submission note on screenshots
-- The existing screenshots cover the main app states and successful transaction flow.
-- If the reviewer specifically expects a dedicated screenshot showing the wallet options picker/modal, capture one additional screenshot for that exact moment and add it to `docs/screenshots/`.
+- The screenshot set now includes the wallet options picker/modal to show multi-wallet selection directly in the UI.
+- The current screenshots cover the main app states, successful transaction flow, and wallet selection evidence for Level 2 review.
 
 Full checklist and naming guide: [`docs/screenshots/README.md`](docs/screenshots/README.md)
 
