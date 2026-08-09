@@ -74,48 +74,42 @@ export function SendPaymentForm({
           <div className="grid gap-2">
             <Label className="text-sm font-medium text-foreground">Transfer mode</Label>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label
+              <button
+                type="button"
+                onClick={() => onChange({ mode: "native_transfer" })}
+                disabled={isBusy || isConfirming}
+                aria-pressed={form.mode === "native_transfer"}
                 className={cn(
-                  buttonVariants({ variant: form.mode === "native_transfer" ? "default" : "outline" }),
-                  "relative h-auto cursor-pointer justify-start rounded-2xl px-4 py-6 text-left",
-                  (isBusy || isConfirming) && "pointer-events-none opacity-50"
+                  "flex min-h-[92px] w-full flex-col items-start justify-center gap-1 rounded-2xl border px-4 py-5 text-left transition-colors",
+                  form.mode === "native_transfer"
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                    : "border-border bg-background/80 text-foreground hover:bg-muted/60",
+                  (isBusy || isConfirming) && "cursor-not-allowed opacity-50"
                 )}
               >
-                <input
-                  type="radio"
-                  name="transfer-mode"
-                  value="native_transfer"
-                  checked={form.mode === "native_transfer"}
-                  onChange={() => onChange({ mode: "native_transfer" })}
-                  disabled={isBusy || isConfirming}
-                  className="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none opacity-0"
-                />
-                <span className="flex flex-col items-start gap-1">
-                  <span>Native transfer</span>
-                  <span className="text-xs font-normal opacity-80">Send XLM directly on Testnet</span>
+                <span className="font-medium">Native transfer</span>
+                <span className={cn("text-xs", form.mode === "native_transfer" ? "text-primary-foreground/80" : "text-muted-foreground")}>
+                  Send XLM directly on Testnet
                 </span>
-              </label>
-              <label
+              </button>
+              <button
+                type="button"
+                onClick={() => onChange({ mode: "contract" })}
+                disabled={!contractReady || isBusy || isConfirming}
+                aria-pressed={form.mode === "contract"}
                 className={cn(
-                  buttonVariants({ variant: form.mode === "contract" ? "default" : "outline" }),
-                  "relative h-auto cursor-pointer justify-start rounded-2xl px-4 py-6 text-left",
-                  (!contractReady || isBusy || isConfirming) && "pointer-events-none opacity-50"
+                  "flex min-h-[92px] w-full flex-col items-start justify-center gap-1 rounded-2xl border px-4 py-5 text-left transition-colors",
+                  form.mode === "contract"
+                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                    : "border-border bg-background/80 text-foreground hover:bg-muted/60",
+                  (!contractReady || isBusy || isConfirming) && "cursor-not-allowed opacity-50"
                 )}
               >
-                <input
-                  type="radio"
-                  name="transfer-mode"
-                  value="contract"
-                  checked={form.mode === "contract"}
-                  onChange={() => onChange({ mode: "contract" })}
-                  disabled={!contractReady || isBusy || isConfirming}
-                  className="absolute inset-0 z-10 h-full w-full cursor-pointer appearance-none opacity-0"
-                />
-                <span className="flex flex-col items-start gap-1">
-                  <span>Contract mode</span>
-                  <span className="text-xs font-normal opacity-80">Create a payment intent onchain</span>
+                <span className="font-medium">Contract mode</span>
+                <span className={cn("text-xs", form.mode === "contract" ? "text-primary-foreground/80" : "text-muted-foreground")}>
+                  Create a payment intent onchain
                 </span>
-              </label>
+              </button>
             </div>
           </div>
           <div className="grid gap-2">
