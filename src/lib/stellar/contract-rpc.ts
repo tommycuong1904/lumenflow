@@ -1,8 +1,8 @@
 import { BASE_FEE, Contract, Networks, Operation, TransactionBuilder, rpc, scValToNative } from "@stellar/stellar-sdk";
 
-import type { CreatePaymentIntentInput, EscrowVaultRecord, PaymentIntentRecord } from "./contract";
+import type { CreateEscrowVaultInput, CreatePaymentIntentInput, EscrowVaultRecord, PaymentIntentRecord } from "./contract";
 import { getEscrowVaultConfig, getPaymentIntentConfig } from "./contract";
-import { buildCreatePaymentIntentArgs, buildGetPaymentIntentArgs } from "./contract-payload";
+import { buildCreateEscrowVaultArgs, buildCreatePaymentIntentArgs, buildGetPaymentIntentArgs } from "./contract-payload";
 
 export type ContractSubmitStatus = "missing_contract" | "pending" | "success" | "error";
 
@@ -54,6 +54,29 @@ export async function createPaymentIntentTransactionXdr(sourcePublicKey: string,
     networkPassphrase: Networks.TESTNET,
   })
     .addOperation(contract.call("create_payment", ...buildCreatePaymentIntentArgs(sourcePublicKey, input)))
+    .setTimeout(30)
+    .build();
+
+  const prepared = await server.prepareTransaction(tx);
+  return prepared.toXDR();
+}
+
+export async function createEscrowVaultTransactionXdr(sourcePublicKey: string, input: CreateEscrowVaultInput) {
+  const { contractId, ready } = getEscrowVaultConfig();
+
+  if (!ready) {
+    throw new Error("Escrow vault contract is not configured.");
+  }
+
+  const server = createSorobanRpcServer();
+  const sourceAccount = await server.getAccount(sourcePublicKey);
+  const contract = new Contract(contractId);
+
+  const tx = new TransactionBuilder(sourceAccount, {
+    fee: BASE_FEE,
+    networkPassphrase: Networks.TESTNET,
+  })
+    .addOperation(contract.call("create_escrow", ...buildCreateEscrowVaultArgs(sourcePublicKey, input)))
     .setTimeout(30)
     .build();
 

@@ -23,7 +23,7 @@ export type TxState = {
   amount?: string | null;
   recipient?: string | null;
   memo?: string | null;
-  mode?: "native_transfer" | "contract" | null;
+  mode?: "native_transfer" | "contract" | "escrow" | null;
   paymentIntentId?: string | null;
 };
 
@@ -31,7 +31,7 @@ export type SendFormState = {
   recipient: string;
   amount: string;
   memo: string;
-  mode?: "native_transfer" | "contract";
+  mode?: "native_transfer" | "contract" | "escrow";
 };
 
 export type FreighterDebugEvent = {

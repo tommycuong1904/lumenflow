@@ -6,7 +6,7 @@ export const PAYMENT_INTENT_RPC_URL = process.env.NEXT_PUBLIC_SOROBAN_RPC_URL ??
 
 export type PaymentIntentStatus = "pending" | "completed" | "cancelled";
 
-export type PaymentIntentMode = "native_transfer" | "contract";
+export type PaymentIntentMode = "native_transfer" | "contract" | "escrow";
 
 export type PaymentIntentRecord = {
   id: string;
@@ -19,6 +19,12 @@ export type PaymentIntentRecord = {
 export type CreatePaymentIntentInput = {
   recipient: string;
   amount: string;
+};
+
+export type CreateEscrowVaultInput = {
+  payee: string;
+  amount: string;
+  memo: string;
 };
 
 export type EscrowVaultStatus = "created" | "released" | "refunded";

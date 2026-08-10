@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useLumenFlowWallet } from "@/components/LumenFlowShell";
 import { getXlmBalance } from "@/lib/stellar/horizon";
-import { getEscrowVaultCount, getEscrowVaultRecord, getPaymentIntentRecord, getSorobanTransaction, submitSignedContractTransaction, createPaymentIntentTransactionXdr } from "@/lib/stellar/contract-rpc";
+import { getEscrowVaultCount, getEscrowVaultRecord, getPaymentIntentRecord, getSorobanTransaction, submitSignedContractTransaction, createEscrowVaultTransactionXdr, createPaymentIntentTransactionXdr } from "@/lib/stellar/contract-rpc";
 import { submitSignedTransaction } from "@/lib/stellar/submit";
 import type { BalanceState, SendFormState, TxState } from "@/lib/stellar/types";
 import type { EscrowVaultRecord } from "@/lib/stellar/contract";
@@ -55,6 +55,7 @@ const readinessPoints = [
   "Check your live XLM balance",
   "Send XLM with the native payment flow",
   "Create payment intents with contract mode",
+  "Create escrow records with Level 3 mode",
 ];
 
 type EscrowVaultReadState = {
@@ -225,36 +226,47 @@ export default function Home() {
 
     try {
       const isContractMode = form.mode === "contract";
+      const isEscrowMode = form.mode === "escrow";
 
       setTx({
         status: "validating",
         hash: null,
-        message: isContractMode
-          ? "Preparing the payment intent transaction for wallet signing..."
-          : "Preparing the Stellar Testnet payment for signing...",
-        mode: isContractMode ? "contract" : "native_transfer",
+        message: isEscrowMode
+          ? "Preparing the escrow transaction for wallet signing..."
+          : isContractMode
+            ? "Preparing the payment intent transaction for wallet signing..."
+            : "Preparing the Stellar Testnet payment for signing...",
+        mode: isEscrowMode ? "escrow" : isContractMode ? "contract" : "native_transfer",
         paymentIntentId: null,
       });
 
-      const transactionXdr = isContractMode
-        ? await createPaymentIntentTransactionXdr(wallet.publicKey, {
-            recipient: form.recipient.trim(),
+      const transactionXdr = isEscrowMode
+        ? await createEscrowVaultTransactionXdr(wallet.publicKey, {
+            payee: form.recipient.trim(),
             amount: form.amount.trim(),
+            memo: form.memo.trim(),
           })
-        : await createPaymentTransaction({
-            sourcePublicKey: wallet.publicKey,
-            destinationPublicKey: form.recipient.trim(),
-            amount: form.amount.trim(),
-            memo: form.memo,
-          });
+        : isContractMode
+          ? await createPaymentIntentTransactionXdr(wallet.publicKey, {
+              recipient: form.recipient.trim(),
+              amount: form.amount.trim(),
+            })
+          : await createPaymentTransaction({
+              sourcePublicKey: wallet.publicKey,
+              destinationPublicKey: form.recipient.trim(),
+              amount: form.amount.trim(),
+              memo: form.memo,
+            });
 
       setTx({
         status: "signing",
         hash: null,
-        message: isContractMode
-          ? "Review the contract invocation in your wallet and approve the signature to continue."
-          : "Review the request in your wallet and approve the signature to continue.",
-        mode: isContractMode ? "contract" : "native_transfer",
+        message: isEscrowMode
+          ? "Review the escrow contract invocation in your wallet and approve the signature to continue."
+          : isContractMode
+            ? "Review the contract invocation in your wallet and approve the signature to continue."
+            : "Review the request in your wallet and approve the signature to continue.",
+        mode: isEscrowMode ? "escrow" : isContractMode ? "contract" : "native_transfer",
         paymentIntentId: null,
       });
 
@@ -264,7 +276,7 @@ export default function Home() {
           status: "error",
           hash: null,
           message: signedResult.error ?? "Transaction signing failed.",
-          mode: isContractMode ? "contract" : "native_transfer",
+          mode: isEscrowMode ? "escrow" : isContractMode ? "contract" : "native_transfer",
           paymentIntentId: null,
         });
         setIsConfirmingPayment(false);
@@ -274,10 +286,12 @@ export default function Home() {
       setTx({
         status: "submitting",
         hash: null,
-        message: isContractMode
-          ? "Submitting the signed contract invocation to Stellar Testnet..."
-          : "Submitting the signed payment to Stellar Testnet...",
-        mode: isContractMode ? "contract" : "native_transfer",
+        message: isEscrowMode
+          ? "Submitting the signed escrow invocation to Stellar Testnet..."
+          : isContractMode
+            ? "Submitting the signed contract invocation to Stellar Testnet..."
+            : "Submitting the signed payment to Stellar Testnet...",
+        mode: isEscrowMode ? "escrow" : isContractMode ? "contract" : "native_transfer",
         paymentIntentId: null,
       });
 
@@ -285,7 +299,26 @@ export default function Home() {
         ? await submitSignedContractTransaction(signedResult.signedTxXdr)
         : await submitSignedTransaction(signedResult.signedTxXdr);
 
-      if (isContractMode) {
+      if (isEscrowMode) {
+        const txDetails = await getSorobanTransaction(submission.hash);
+        const escrowId = txDetails.status === "SUCCESS" && txDetails.returnValue
+          ? String(txDetails.returnValue.value())
+          : null;
+
+        setTx({
+          status: "success",
+          hash: submission.hash,
+          message: escrowId
+            ? `Escrow created on Stellar Testnet with onchain id #${escrowId}.`
+            : "Escrow invocation submitted to Stellar Testnet successfully.",
+          amount: form.amount.trim(),
+          recipient: form.recipient.trim(),
+          memo: form.memo.trim() || null,
+          mode: "escrow",
+          paymentIntentId: escrowId,
+        });
+        await refreshEscrowVaultRead();
+      } else if (isContractMode) {
         const txDetails = await getSorobanTransaction(submission.hash);
         const paymentIntentId = txDetails.status === "SUCCESS" && txDetails.returnValue
           ? String(txDetails.returnValue.value())
