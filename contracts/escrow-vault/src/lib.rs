@@ -5,6 +5,10 @@ extern crate std;
 
 use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol};
 
+const EVENT_ESCROW_CREATED: Symbol = symbol_short!("created");
+const EVENT_ESCROW_RELEASED: Symbol = symbol_short!("released");
+const EVENT_ESCROW_REFUNDED: Symbol = symbol_short!("refunded");
+
 const ESCROW_COUNTER: Symbol = symbol_short!("ESCROW");
 
 #[derive(Clone)]
@@ -29,6 +33,19 @@ pub struct EscrowRecord {
     pub payee: Address,
     pub amount: i128,
     pub status: EscrowStatus,
+    pub created_at: u64,
+    pub updated_at: u64,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[contracttype]
+pub struct EscrowEvent {
+    pub escrow_id: u64,
+    pub payer: Address,
+    pub payee: Address,
+    pub amount: i128,
+    pub status: EscrowStatus,
+    pub timestamp: u64,
 }
 
 #[contract]
@@ -50,18 +67,32 @@ impl EscrowVaultContract {
             .unwrap_or(0)
             + 1;
 
+        let now = env.ledger().timestamp();
         let escrow = EscrowRecord {
             id: next_id,
-            payer,
-            payee,
+            payer: payer.clone(),
+            payee: payee.clone(),
             amount,
             status: EscrowStatus::Created,
+            created_at: now,
+            updated_at: now,
         };
 
         env.storage()
             .persistent()
             .set(&DataKey::Escrow(next_id), &escrow);
         env.storage().persistent().set(&ESCROW_COUNTER, &next_id);
+        env.events().publish(
+            (EVENT_ESCROW_CREATED, next_id),
+            EscrowEvent {
+                escrow_id: next_id,
+                payer,
+                payee,
+                amount,
+                status: EscrowStatus::Created,
+                timestamp: now,
+            },
+        );
 
         next_id
     }
@@ -77,10 +108,23 @@ impl EscrowVaultContract {
             panic!("escrow not releasable");
         }
 
+        let now = env.ledger().timestamp();
         escrow.status = EscrowStatus::Released;
+        escrow.updated_at = now;
         env.storage()
             .persistent()
             .set(&DataKey::Escrow(id), &escrow);
+        env.events().publish(
+            (EVENT_ESCROW_RELEASED, id),
+            EscrowEvent {
+                escrow_id: id,
+                payer: escrow.payer,
+                payee: escrow.payee,
+                amount: escrow.amount,
+                status: EscrowStatus::Released,
+                timestamp: now,
+            },
+        );
     }
 
     pub fn refund_escrow(env: Env, id: u64, payer: Address) {
@@ -94,10 +138,23 @@ impl EscrowVaultContract {
             panic!("escrow not refundable");
         }
 
+        let now = env.ledger().timestamp();
         escrow.status = EscrowStatus::Refunded;
+        escrow.updated_at = now;
         env.storage()
             .persistent()
             .set(&DataKey::Escrow(id), &escrow);
+        env.events().publish(
+            (EVENT_ESCROW_REFUNDED, id),
+            EscrowEvent {
+                escrow_id: id,
+                payer: escrow.payer,
+                payee: escrow.payee,
+                amount: escrow.amount,
+                status: EscrowStatus::Refunded,
+                timestamp: now,
+            },
+        );
     }
 
     pub fn get_escrow(env: Env, id: u64) -> EscrowRecord {
@@ -110,13 +167,16 @@ impl EscrowVaultContract {
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
     use super::{EscrowStatus, EscrowVaultContract, EscrowVaultContractClient};
-    use soroban_sdk::{testutils::Address as _, Address, Env};
+    use soroban_sdk::{testutils::{Address as _, Ledger}, Address, Env};
 
     #[test]
     fn create_escrow_persists_created_state() {
         let env = Env::default();
         env.mock_all_auths();
+        env.ledger().set_timestamp(1_700_000_000);
 
         let contract_id = env.register(EscrowVaultContract, ());
         let client = EscrowVaultContractClient::new(&env, &contract_id);
@@ -127,16 +187,19 @@ mod tests {
         let escrow = client.get_escrow(&escrow_id);
 
         assert_eq!(escrow.id, 1);
-        assert_eq!(escrow.payer, payer);
-        assert_eq!(escrow.payee, payee);
+        assert_eq!(escrow.payer, payer.clone());
+        assert_eq!(escrow.payee, payee.clone());
         assert_eq!(escrow.amount, 250);
         assert_eq!(escrow.status, EscrowStatus::Created);
+        assert_eq!(escrow.created_at, 1_700_000_000);
+        assert_eq!(escrow.updated_at, 1_700_000_000);
     }
 
     #[test]
     fn release_escrow_updates_status() {
         let env = Env::default();
         env.mock_all_auths();
+        env.ledger().set_timestamp(1_700_000_000);
 
         let contract_id = env.register(EscrowVaultContract, ());
         let client = EscrowVaultContractClient::new(&env, &contract_id);
@@ -144,16 +207,20 @@ mod tests {
         let payee = Address::generate(&env);
 
         let escrow_id = client.create_escrow(&payer, &payee, &250_i128);
+        env.ledger().set_timestamp(1_700_000_123);
         client.release_escrow(&escrow_id, &payer);
 
         let escrow = client.get_escrow(&escrow_id);
         assert_eq!(escrow.status, EscrowStatus::Released);
+        assert_eq!(escrow.created_at, 1_700_000_000);
+        assert_eq!(escrow.updated_at, 1_700_000_123);
     }
 
     #[test]
     fn refund_escrow_updates_status() {
         let env = Env::default();
         env.mock_all_auths();
+        env.ledger().set_timestamp(1_700_000_000);
 
         let contract_id = env.register(EscrowVaultContract, ());
         let client = EscrowVaultContractClient::new(&env, &contract_id);
@@ -161,10 +228,13 @@ mod tests {
         let payee = Address::generate(&env);
 
         let escrow_id = client.create_escrow(&payer, &payee, &250_i128);
+        env.ledger().set_timestamp(1_700_000_456);
         client.refund_escrow(&escrow_id, &payer);
 
         let escrow = client.get_escrow(&escrow_id);
         assert_eq!(escrow.status, EscrowStatus::Refunded);
+        assert_eq!(escrow.created_at, 1_700_000_000);
+        assert_eq!(escrow.updated_at, 1_700_000_456);
     }
 
     #[test]
@@ -195,5 +265,21 @@ mod tests {
         let escrow_id = client.create_escrow(&payer, &payee, &250_i128);
         client.release_escrow(&escrow_id, &payer);
         client.release_escrow(&escrow_id, &payer);
+    }
+
+    #[test]
+    #[should_panic(expected = "payer mismatch")]
+    fn refund_escrow_rejects_non_owner() {
+        let env = Env::default();
+        env.mock_all_auths();
+
+        let contract_id = env.register(EscrowVaultContract, ());
+        let client = EscrowVaultContractClient::new(&env, &contract_id);
+        let payer = Address::generate(&env);
+        let payee = Address::generate(&env);
+        let stranger = Address::generate(&env);
+
+        let escrow_id = client.create_escrow(&payer, &payee, &250_i128);
+        client.refund_escrow(&escrow_id, &stranger);
     }
 }
