@@ -2,8 +2,12 @@ import { Badge } from "@/components/ui/badge";
 
 const quickLinks = [
   {
-    label: "Contract explorer",
+    label: "Payment intent explorer",
     href: "https://lab.stellar.org/r/testnet/contract/CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO",
+  },
+  {
+    label: "Escrow vault explorer",
+    href: "https://lab.stellar.org/r/testnet/contract/CDY4BP6KMWEUSHRJFIBZVJW2TQN3BAX2VB3FAH6XCKDRDNVUJFJ6EDIQ",
   },
   {
     label: "GitHub repo",
@@ -15,7 +19,7 @@ const quickLinks = [
   },
 ] as const;
 
-const capabilities = ["Multi-wallet connection", "Native XLM transfer", "Contract payment intents"] as const;
+const capabilities = ["Multi-wallet connection", "Native XLM transfer", "Contract payment intents", "Live escrow records"] as const;
 
 export function AppFooter() {
   return (
@@ -24,10 +28,10 @@ export function AppFooter() {
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <span className="text-lg font-semibold tracking-tight text-foreground">LumenFlow</span>
-            <Badge variant="outline" className="border-primary/20 bg-primary/8 text-primary">Level 2</Badge>
+            <Badge variant="outline" className="border-primary/20 bg-primary/8 text-primary">Level 2 + Level 3</Badge>
           </div>
           <p className="max-w-md text-sm leading-7 text-muted-foreground">
-            A Stellar Testnet payment app designed to show the full journey from wallet connection to native transfer and contract-backed payment intent creation.
+            A Stellar Testnet payment app designed to show the full journey from wallet connection to native transfer, payment intents, and live escrow creation.
           </p>
         </div>
         <div className="space-y-3">
@@ -54,7 +58,7 @@ export function AppFooter() {
       <div className="border-t border-border/60">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-5 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
           <span>Stellar Testnet only.</span>
-          <span>Built for the Level 2 challenge submission flow.</span>
+          <span>Built for the Stellar Testnet payment + escrow challenge flow.</span>
         </div>
       </div>
     </footer>
