@@ -35,7 +35,7 @@ Level 2 core requirements are implemented and verified:
   - wallet / signing / submission failure: connect, signature, and submission failures surface as visible error states
 - **Contracts deployed on Testnet**
   - Payment Intent contract ID: `CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO`
-  - Escrow vault contract ID: `CDQHBEGEY5RBHNXMSP7FIYKTFWJXN4GHLP26JDJO4LX754II4X465SEM`
+  - Escrow vault contract ID: `CDY4BP6KMWEUSHRJFIBZVJW2TQN3BAX2VB3FAH6XCKDRDNVUJFJ6EDIQ`
 - **Contracts called from the frontend**
   - contract mode builds, signs, submits, and reads back a Payment Intent from the frontend flow
 - **Transaction status visible**
@@ -93,7 +93,7 @@ Required frontend contract values:
 ```env
 NEXT_PUBLIC_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
 NEXT_PUBLIC_PAYMENT_INTENT_CONTRACT_ID=CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO
-NEXT_PUBLIC_ESCROW_VAULT_CONTRACT_ID=CDQHBEGEY5RBHNXMSP7FIYKTFWJXN4GHLP26JDJO4LX754II4X465SEM
+NEXT_PUBLIC_ESCROW_VAULT_CONTRACT_ID=CDY4BP6KMWEUSHRJFIBZVJW2TQN3BAX2VB3FAH6XCKDRDNVUJFJ6EDIQ
 ```
 
 ### Run development server

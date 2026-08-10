@@ -40,6 +40,19 @@ pub struct EscrowRecord {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[contracttype]
+pub struct EscrowReadModel {
+    pub id: u64,
+    pub payer: Address,
+    pub payee: Address,
+    pub amount: i128,
+    pub memo: String,
+    pub status: EscrowStatus,
+    pub created_at: u64,
+    pub updated_at: u64,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[contracttype]
 pub struct EscrowEvent {
     pub escrow_id: u64,
     pub payer: Address,
@@ -176,6 +189,20 @@ impl EscrowVaultContract {
             .unwrap_or_else(|| panic!("escrow not found"))
     }
 
+    pub fn get_escrow_read_model(env: Env, id: u64) -> EscrowReadModel {
+        let escrow = Self::get_escrow(env, id);
+        EscrowReadModel {
+            id: escrow.id,
+            payer: escrow.payer,
+            payee: escrow.payee,
+            amount: escrow.amount,
+            memo: escrow.memo,
+            status: escrow.status,
+            created_at: escrow.created_at,
+            updated_at: escrow.updated_at,
+        }
+    }
+
     pub fn get_escrow_count(env: Env) -> u64 {
         env.storage()
             .persistent()
@@ -205,8 +232,10 @@ mod tests {
 
         let escrow_id = client.create_escrow(&payer, &payee, &250_i128, &memo);
         let escrow = client.get_escrow(&escrow_id);
+        let read_model = client.get_escrow_read_model(&escrow_id);
 
         assert_eq!(escrow.id, 1);
+        assert_eq!(read_model.id, 1);
         assert_eq!(escrow.payer, payer.clone());
         assert_eq!(escrow.payee, payee.clone());
         assert_eq!(escrow.amount, 250);

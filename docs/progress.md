@@ -20,12 +20,13 @@ Level 2 contract mode remains live and verified, while Level 3 escrow-vault foun
 ## Deployment Artifacts
 - Payment Intent contract ID: `CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO`
 - Payment Intent alias: `payment-intent-level2`
-- Escrow vault contract ID: `CDQHBEGEY5RBHNXMSP7FIYKTFWJXN4GHLP26JDJO4LX754II4X465SEM`
+- Escrow vault contract ID: `CDY4BP6KMWEUSHRJFIBZVJW2TQN3BAX2VB3FAH6XCKDRDNVUJFJ6EDIQ`
 - Escrow vault alias: `escrow-vault-level3`
 - Deployer public key: `GBBSRCJ7LU46KMCJKEZBX4ZKVHEQYWRBCJ7XTXJGJRWTXL226QGK5PME`
 - Payment Intent deploy tx: `1d910b784a363a499c23265397cddbbcba77540e25f9d72ec9c440dced40401e`
-- Escrow vault upload hash: `a35d6efc94d2400a72f28641c2c4b02665c5e5c1c1f94e2ce0d263c5fd9aa4a4`
-- Escrow vault deploy tx: `8286b38119f575380028fe57615b74a294911d67a5b25ef8b0901f892e198ac7`
+- Escrow vault upload hash: `b9034a4b221c092611f5b4de086ecb43f3e253edca8a9514748f8f51cd971d6e`
+- Escrow vault deploy tx: `2c1fb056b52934f39a047a2fb0174978afcb1ba22d3ba8dcb4c3e4acb60b0005`
+- Escrow vault live verify create tx: `d1ea87d8b006fcfd8bb1e62f7eaeeb9f9642eb1ed28c0cb3ee3751ce06c2a92d`
 
 ## Validation Snapshot
 - App production build passes (`npm run build`).
@@ -37,6 +38,7 @@ Level 2 contract mode remains live and verified, while Level 3 escrow-vault foun
 - Escrow vault frontend count + latest-record read wiring is build-verified.
 - Escrow mode frontend write-foundation wiring is build-verified.
 - Escrow vault contract is now deployed on Stellar Testnet and wired into local frontend env.
+- Live escrow verify now passes end-to-end for create + count + detail read on the redeployed Level 3 contract.
 - Local app endpoint responds successfully on port 3002 (`HTTP/1.1 200 OK`).
 - Public Vercel deployment was checked directly to confirm contract mode enablement after env setup.
 - Wallet connect was confirmed working again on the live website.
