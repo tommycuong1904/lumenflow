@@ -22,6 +22,8 @@
 
 # Rust / Soroban build artifacts
 contracts/payment-intent/target/
+contracts/escrow-vault/target/
+contracts/escrow-vault/test_snapshots/
 
 # misc
 .DS_Store
