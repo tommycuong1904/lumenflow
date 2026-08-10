@@ -21,6 +21,19 @@ export type CreatePaymentIntentInput = {
   amount: string;
 };
 
+export type EscrowVaultStatus = "created" | "released" | "refunded";
+
+export type EscrowVaultRecord = {
+  id: string;
+  payer: string;
+  payee: string;
+  amount: string;
+  memo: string;
+  status: EscrowVaultStatus;
+  createdAt: number;
+  updatedAt: number;
+};
+
 export function isPaymentIntentContractConfigured() {
   return PAYMENT_INTENT_CONTRACT_ID.trim().length > 0;
 }

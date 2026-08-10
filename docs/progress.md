@@ -14,6 +14,7 @@ Level 2 contract mode remains live and verified, while Level 3 escrow-vault foun
 - Wallet session restore after `F5` now keeps the connected state without reopening the wallet picker.
 - New `contracts/escrow-vault/` crate now has create/release/refund/get/count flows with 6 passing tests.
 - Home page now includes a read-only escrow vault status card backed by `get_escrow_count` when `NEXT_PUBLIC_ESCROW_VAULT_CONTRACT_ID` is configured.
+- The escrow read card now also fetches and displays the latest readable escrow record via `get_escrow(id)` when count > 0.
 
 ## Deployment Artifacts
 - Contract ID: `CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO`
@@ -28,7 +29,7 @@ Level 2 contract mode remains live and verified, while Level 3 escrow-vault foun
 - Escrow vault Rust tests pass (`cargo test` -> 6 passed).
 - Native transfer flow remains preserved.
 - Contract-mode frontend invoke/read wiring is build-verified.
-- Escrow vault frontend read wiring is build-verified.
+- Escrow vault frontend count + latest-record read wiring is build-verified.
 - Local app endpoint responds successfully on port 3002 (`HTTP/1.1 200 OK`).
 - Public Vercel deployment was checked directly to confirm contract mode enablement after env setup.
 - Wallet connect was confirmed working again on the live website.

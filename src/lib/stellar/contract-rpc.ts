@@ -1,6 +1,6 @@
 import { BASE_FEE, Contract, Networks, Operation, TransactionBuilder, rpc, scValToNative } from "@stellar/stellar-sdk";
 
-import type { CreatePaymentIntentInput, PaymentIntentRecord } from "./contract";
+import type { CreatePaymentIntentInput, EscrowVaultRecord, PaymentIntentRecord } from "./contract";
 import { getEscrowVaultConfig, getPaymentIntentConfig } from "./contract";
 import { buildCreatePaymentIntentArgs, buildGetPaymentIntentArgs } from "./contract-payload";
 
@@ -67,6 +67,16 @@ export async function submitSignedContractTransaction(signedTxXdr: string) {
   return server.sendTransaction(transaction);
 }
 
+function formatTokenAmount(value: bigint | number | string) {
+  const stroops = BigInt(value);
+  const scale = BigInt(10_000_000);
+  const whole = stroops / scale;
+  const fraction = stroops % scale;
+  const fractionText = fraction.toString().padStart(7, "0").replace(/0+$/, "");
+
+  return fractionText ? `${whole.toString()}.${fractionText}` : whole.toString();
+}
+
 function normalizePaymentRecord(value: unknown): PaymentIntentRecord {
   const raw = value as {
     id: bigint | number | string;
@@ -76,18 +86,36 @@ function normalizePaymentRecord(value: unknown): PaymentIntentRecord {
     status: string;
   };
 
-  const stroops = BigInt(raw.amount);
-  const scale = BigInt(10_000_000);
-  const whole = stroops / scale;
-  const fraction = stroops % scale;
-  const fractionText = fraction.toString().padStart(7, "0").replace(/0+$/, "");
-
   return {
     id: String(raw.id),
     creator: String(raw.creator),
     recipient: String(raw.recipient),
-    amount: fractionText ? `${whole.toString()}.${fractionText}` : whole.toString(),
+    amount: formatTokenAmount(raw.amount),
     status: String(raw.status).toLowerCase() as PaymentIntentRecord["status"],
+  };
+}
+
+function normalizeEscrowVaultRecord(value: unknown): EscrowVaultRecord {
+  const raw = value as {
+    id: bigint | number | string;
+    payer: string;
+    payee: string;
+    amount: bigint | number | string;
+    memo?: string;
+    status: string;
+    created_at: bigint | number | string;
+    updated_at: bigint | number | string;
+  };
+
+  return {
+    id: String(raw.id),
+    payer: String(raw.payer),
+    payee: String(raw.payee),
+    amount: formatTokenAmount(raw.amount),
+    memo: String(raw.memo ?? ""),
+    status: String(raw.status).toLowerCase() as EscrowVaultRecord["status"],
+    createdAt: Number(raw.created_at),
+    updatedAt: Number(raw.updated_at),
   };
 }
 
@@ -123,4 +151,16 @@ export async function getEscrowVaultCount() {
   }
 
   return Number(scValToNative(result));
+}
+
+export async function getEscrowVaultRecord(id: string) {
+  const { contractId, ready } = getEscrowVaultConfig();
+
+  if (!ready) {
+    return null;
+  }
+
+  const server = createSorobanRpcServer();
+  const response = await server.queryContract(contractId, "get_escrow", { id: Number(id) }, Networks.TESTNET);
+  return normalizeEscrowVaultRecord(response.result);
 }

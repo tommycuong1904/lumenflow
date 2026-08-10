@@ -10,13 +10,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useLumenFlowWallet } from "@/components/LumenFlowShell";
 import { getXlmBalance } from "@/lib/stellar/horizon";
-import { getEscrowVaultCount, getPaymentIntentRecord, getSorobanTransaction, submitSignedContractTransaction, createPaymentIntentTransactionXdr } from "@/lib/stellar/contract-rpc";
+import { getEscrowVaultCount, getEscrowVaultRecord, getPaymentIntentRecord, getSorobanTransaction, submitSignedContractTransaction, createPaymentIntentTransactionXdr } from "@/lib/stellar/contract-rpc";
 import { submitSignedTransaction } from "@/lib/stellar/submit";
 import type { BalanceState, SendFormState, TxState } from "@/lib/stellar/types";
+import type { EscrowVaultRecord } from "@/lib/stellar/contract";
 import { createPaymentTransaction } from "@/lib/stellar/transactions";
 import { isValidAmount, isValidPublicKey } from "@/lib/stellar/validation";
 import { signWalletTransaction } from "@/lib/stellar/wallet";
 import { getEscrowVaultConfig } from "@/lib/stellar/contract";
+import { truncateAddress } from "@/lib/utils/format";
 
 const initialBalanceState: BalanceState = {
   xlm: null,
@@ -37,6 +39,7 @@ const initialEscrowVaultReadState: EscrowVaultReadState = {
   loading: false,
   error: null,
   count: null,
+  latest: null,
   configured: getEscrowVaultConfig().ready,
 };
 
@@ -58,6 +61,7 @@ type EscrowVaultReadState = {
   loading: boolean;
   error: string | null;
   count: number | null;
+  latest: EscrowVaultRecord | null;
   configured: boolean;
 };
 
@@ -113,6 +117,7 @@ export default function Home() {
         loading: false,
         error: null,
         count: null,
+        latest: null,
         configured: false,
       });
       return;
@@ -122,15 +127,18 @@ export default function Home() {
       loading: true,
       error: null,
       count: null,
+      latest: null,
       configured: true,
     });
 
     try {
       const count = await getEscrowVaultCount();
+      const latest = count && count > 0 ? await getEscrowVaultRecord(String(count)) : null;
       setEscrowVaultRead({
         loading: false,
         error: null,
         count,
+        latest,
         configured: true,
       });
     } catch {
@@ -138,6 +146,7 @@ export default function Home() {
         loading: false,
         error: "Could not read the escrow vault contract right now.",
         count: null,
+        latest: null,
         configured: true,
       });
     }
@@ -409,9 +418,58 @@ export default function Home() {
                 {escrowVaultRead.error
                   ? escrowVaultRead.error
                   : escrowVaultRead.configured
-                    ? "Contract read path is wired. Next step is fetching individual escrow records into a visible activity panel."
+                    ? escrowVaultRead.latest
+                      ? "Latest escrow record is now being read from the contract and shown below."
+                      : "Contract read path is wired. Create or deploy escrows to populate the detail panel."
                     : "Set NEXT_PUBLIC_ESCROW_VAULT_CONTRACT_ID to enable live escrow reads from Stellar Testnet."}
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-border/80 bg-secondary/35 px-4 py-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Latest escrow</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Most recent readable escrow from the contract.</p>
+                </div>
+                {escrowVaultRead.latest ? (
+                  <Badge variant="outline" className="w-fit border-border bg-background/60 px-3 py-1 text-sm text-foreground capitalize">
+                    {escrowVaultRead.latest.status}
+                  </Badge>
+                ) : null}
+              </div>
+
+              {escrowVaultRead.latest ? (
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 text-sm">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Escrow ID</p>
+                    <p className="mt-1 font-medium text-foreground">#{escrowVaultRead.latest.id}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Amount</p>
+                    <p className="mt-1 font-medium text-foreground">{escrowVaultRead.latest.amount} XLM</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Payer</p>
+                    <p className="mt-1 font-medium text-foreground">{truncateAddress(escrowVaultRead.latest.payer)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Payee</p>
+                    <p className="mt-1 font-medium text-foreground">{truncateAddress(escrowVaultRead.latest.payee)}</p>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Memo</p>
+                    <p className="mt-1 font-medium text-foreground">{escrowVaultRead.latest.memo || "No memo"}</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                  {escrowVaultRead.configured
+                    ? escrowVaultRead.loading
+                      ? "Loading the most recent escrow record..."
+                      : "No readable escrow record yet."
+                    : "Escrow detail view will appear automatically after contract config is set."}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
