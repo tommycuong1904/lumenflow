@@ -3,7 +3,7 @@
 #[cfg(test)]
 extern crate std;
 
-use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol};
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol};
 
 const EVENT_ESCROW_CREATED: Symbol = symbol_short!("created");
 const EVENT_ESCROW_RELEASED: Symbol = symbol_short!("released");
@@ -32,6 +32,7 @@ pub struct EscrowRecord {
     pub payer: Address,
     pub payee: Address,
     pub amount: i128,
+    pub memo: String,
     pub status: EscrowStatus,
     pub created_at: u64,
     pub updated_at: u64,
@@ -44,6 +45,7 @@ pub struct EscrowEvent {
     pub payer: Address,
     pub payee: Address,
     pub amount: i128,
+    pub memo: String,
     pub status: EscrowStatus,
     pub timestamp: u64,
 }
@@ -53,7 +55,13 @@ pub struct EscrowVaultContract;
 
 #[contractimpl]
 impl EscrowVaultContract {
-    pub fn create_escrow(env: Env, payer: Address, payee: Address, amount: i128) -> u64 {
+    pub fn create_escrow(
+        env: Env,
+        payer: Address,
+        payee: Address,
+        amount: i128,
+        memo: String,
+    ) -> u64 {
         payer.require_auth();
 
         if amount <= 0 {
@@ -73,6 +81,7 @@ impl EscrowVaultContract {
             payer: payer.clone(),
             payee: payee.clone(),
             amount,
+            memo: memo.clone(),
             status: EscrowStatus::Created,
             created_at: now,
             updated_at: now,
@@ -89,6 +98,7 @@ impl EscrowVaultContract {
                 payer,
                 payee,
                 amount,
+                memo,
                 status: EscrowStatus::Created,
                 timestamp: now,
             },
@@ -121,6 +131,7 @@ impl EscrowVaultContract {
                 payer: escrow.payer,
                 payee: escrow.payee,
                 amount: escrow.amount,
+                memo: escrow.memo.clone(),
                 status: EscrowStatus::Released,
                 timestamp: now,
             },
@@ -151,6 +162,7 @@ impl EscrowVaultContract {
                 payer: escrow.payer,
                 payee: escrow.payee,
                 amount: escrow.amount,
+                memo: escrow.memo.clone(),
                 status: EscrowStatus::Refunded,
                 timestamp: now,
             },
@@ -163,6 +175,13 @@ impl EscrowVaultContract {
             .get(&DataKey::Escrow(id))
             .unwrap_or_else(|| panic!("escrow not found"))
     }
+
+    pub fn get_escrow_count(env: Env) -> u64 {
+        env.storage()
+            .persistent()
+            .get::<_, u64>(&ESCROW_COUNTER)
+            .unwrap_or(0)
+    }
 }
 
 #[cfg(test)]
@@ -170,7 +189,7 @@ mod tests {
     extern crate std;
 
     use super::{EscrowStatus, EscrowVaultContract, EscrowVaultContractClient};
-    use soroban_sdk::{testutils::{Address as _, Ledger}, Address, Env};
+    use soroban_sdk::{testutils::{Address as _, Ledger}, Address, Env, String};
 
     #[test]
     fn create_escrow_persists_created_state() {
@@ -182,17 +201,20 @@ mod tests {
         let client = EscrowVaultContractClient::new(&env, &contract_id);
         let payer = Address::generate(&env);
         let payee = Address::generate(&env);
+        let memo = String::from_str(&env, "Milestone 1");
 
-        let escrow_id = client.create_escrow(&payer, &payee, &250_i128);
+        let escrow_id = client.create_escrow(&payer, &payee, &250_i128, &memo);
         let escrow = client.get_escrow(&escrow_id);
 
         assert_eq!(escrow.id, 1);
         assert_eq!(escrow.payer, payer.clone());
         assert_eq!(escrow.payee, payee.clone());
         assert_eq!(escrow.amount, 250);
+        assert_eq!(escrow.memo, String::from_str(&env, "Milestone 1"));
         assert_eq!(escrow.status, EscrowStatus::Created);
         assert_eq!(escrow.created_at, 1_700_000_000);
         assert_eq!(escrow.updated_at, 1_700_000_000);
+        assert_eq!(client.get_escrow_count(), 1);
     }
 
     #[test]
@@ -205,8 +227,9 @@ mod tests {
         let client = EscrowVaultContractClient::new(&env, &contract_id);
         let payer = Address::generate(&env);
         let payee = Address::generate(&env);
+        let memo = String::from_str(&env, "Milestone 1");
 
-        let escrow_id = client.create_escrow(&payer, &payee, &250_i128);
+        let escrow_id = client.create_escrow(&payer, &payee, &250_i128, &memo);
         env.ledger().set_timestamp(1_700_000_123);
         client.release_escrow(&escrow_id, &payer);
 
@@ -226,8 +249,9 @@ mod tests {
         let client = EscrowVaultContractClient::new(&env, &contract_id);
         let payer = Address::generate(&env);
         let payee = Address::generate(&env);
+        let memo = String::from_str(&env, "Milestone 1");
 
-        let escrow_id = client.create_escrow(&payer, &payee, &250_i128);
+        let escrow_id = client.create_escrow(&payer, &payee, &250_i128, &memo);
         env.ledger().set_timestamp(1_700_000_456);
         client.refund_escrow(&escrow_id, &payer);
 
@@ -247,8 +271,9 @@ mod tests {
         let client = EscrowVaultContractClient::new(&env, &contract_id);
         let payer = Address::generate(&env);
         let payee = Address::generate(&env);
+        let memo = String::from_str(&env, "Invalid amount");
 
-        let _ = client.create_escrow(&payer, &payee, &0_i128);
+        let _ = client.create_escrow(&payer, &payee, &0_i128, &memo);
     }
 
     #[test]
@@ -261,8 +286,9 @@ mod tests {
         let client = EscrowVaultContractClient::new(&env, &contract_id);
         let payer = Address::generate(&env);
         let payee = Address::generate(&env);
+        let memo = String::from_str(&env, "Milestone 1");
 
-        let escrow_id = client.create_escrow(&payer, &payee, &250_i128);
+        let escrow_id = client.create_escrow(&payer, &payee, &250_i128, &memo);
         client.release_escrow(&escrow_id, &payer);
         client.release_escrow(&escrow_id, &payer);
     }
@@ -278,8 +304,9 @@ mod tests {
         let payer = Address::generate(&env);
         let payee = Address::generate(&env);
         let stranger = Address::generate(&env);
+        let memo = String::from_str(&env, "Refund guard");
 
-        let escrow_id = client.create_escrow(&payer, &payee, &250_i128);
+        let escrow_id = client.create_escrow(&payer, &payee, &250_i128, &memo);
         client.refund_escrow(&escrow_id, &stranger);
     }
 }
