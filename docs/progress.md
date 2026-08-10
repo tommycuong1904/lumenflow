@@ -1,7 +1,7 @@
 # LumenFlow Progress Tracker
 
 ## Current Status
-Level 2 contract mode remains live and verified, while Level 3 escrow-vault foundation is now scaffolded on branch `feat/level3-foundation` with passing Rust tests/builds and a frontend read-only card wired for the new escrow contract.
+Payment-intent flow remains live and verified, and Level 3 escrow-vault is now deployed, locally wired, and live-verified on branch `feat/level3-foundation` with passing Rust/frontend builds.
 
 ## Current State
 - Working branch: `feat/level3-foundation`
@@ -41,6 +41,7 @@ Level 2 contract mode remains live and verified, while Level 3 escrow-vault foun
 - Live escrow verify now passes end-to-end for create + count + detail read on the redeployed Level 3 contract.
 - UI copy now reflects escrow as a live Testnet path rather than a foundation placeholder.
 - Public deployment is still pending separate Vercel credentialed sync; local/live contract state is ahead of the public site.
+- Footer copy and links now reflect the live escrow path, dual contract explorers, and Level 2 + Level 3 state.
 - Local app endpoint responds successfully on port 3002 (`HTTP/1.1 200 OK`).
 - Public Vercel deployment was checked directly to confirm contract mode enablement after env setup.
 - Wallet connect was confirmed working again on the live website.

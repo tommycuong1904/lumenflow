@@ -189,7 +189,7 @@ Current screenshot set in the repo:
 
 ### Submission note on screenshots
 - The screenshot set now includes the wallet options picker/modal to show multi-wallet selection directly in the UI.
-- The current screenshots cover the main app states, successful transaction flow, and wallet selection evidence for Level 2 review.
+- The current screenshots cover the main app states, successful transaction flow, and wallet selection evidence for the current Testnet payment flow.
 
 Full checklist and naming guide: [`docs/screenshots/README.md`](docs/screenshots/README.md)
 
@@ -254,5 +254,5 @@ docs/
 ## Notes
 
 - The app is Testnet-only for this challenge stage.
-- Level 1 native-transfer functionality was preserved while adding Level 2 contract mode.
+- Native-transfer functionality was preserved while adding payment-intent and escrow flows.
 - `docs/challenge.md` is the source of truth for challenge wording.

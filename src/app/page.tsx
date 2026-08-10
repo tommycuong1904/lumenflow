@@ -373,7 +373,7 @@ export default function Home() {
                 LumenFlow
               </h1>
               <p className="max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-                A simple Stellar Testnet payment app where you can connect a wallet, send XLM, and create contract-based payment intents in one flow.
+                A simple Stellar Testnet payment app where you can connect a wallet, send XLM, create payment intents, and create live escrow records in one flow.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
