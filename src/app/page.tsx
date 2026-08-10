@@ -389,6 +389,9 @@ export default function Home() {
               <Badge variant="outline" className="border-border bg-secondary/45 px-3 py-1 text-sm text-secondary-foreground">
                 Contract mode live
               </Badge>
+              <Badge variant="outline" className="border-border bg-secondary/45 px-3 py-1 text-sm text-secondary-foreground">
+                Escrow mode live
+              </Badge>
             </div>
           </div>
 
@@ -405,7 +408,7 @@ export default function Home() {
                 ))}
               </ul>
               <div className="rounded-2xl border border-border/80 bg-secondary/35 px-4 py-4 text-sm leading-6 text-muted-foreground">
-                Both payment paths are ready on Testnet: use Native transfer for direct XLM sends, or Contract mode to create a payment intent onchain.
+                All three payment paths are ready on Testnet: use Native transfer for direct XLM sends, Contract mode to create a payment intent onchain, or Escrow mode to create a live Level 3 escrow.
               </div>
             </CardContent>
           </Card>
@@ -432,7 +435,7 @@ export default function Home() {
               <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">Escrow vault read path</p>
                 <p className="text-sm leading-6 text-muted-foreground">
-                  Read-only foundation for the new Level 3 escrow contract.
+                  Live read path for the Level 3 escrow contract on Stellar Testnet.
                 </p>
               </div>
               <Badge variant="outline" className="w-fit border-border bg-secondary/45 px-3 py-1 text-sm text-secondary-foreground">
@@ -452,9 +455,9 @@ export default function Home() {
                   ? escrowVaultRead.error
                   : escrowVaultRead.configured
                     ? escrowVaultRead.latest
-                      ? "Latest escrow record is now being read from the contract and shown below."
-                      : "Contract read path is wired. Create or deploy escrows to populate the detail panel."
-                    : "Set NEXT_PUBLIC_ESCROW_VAULT_CONTRACT_ID to enable live escrow reads from Stellar Testnet."}
+                      ? "Latest escrow record is being read live from the deployed contract and shown below."
+                      : "Escrow contract is live. Create a new escrow to populate the detail panel."
+                    : "Add NEXT_PUBLIC_ESCROW_VAULT_CONTRACT_ID to enable the live escrow contract read path."}
               </div>
             </div>
 

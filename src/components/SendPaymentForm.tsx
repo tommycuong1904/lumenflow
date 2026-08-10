@@ -53,7 +53,7 @@ export function SendPaymentForm({
           ? "Review the payment details below. Your wallet will open after you confirm to create the payment intent onchain."
           : "Review the payment details below. Your wallet will open only after you confirm."
       : isEscrowMode
-        ? "Escrow mode creates an onchain escrow record with recipient, amount, and memo on Testnet."
+        ? "Escrow mode creates a live onchain escrow on Testnet with recipient, amount, and memo."
         : isContractMode
           ? "Contract mode creates an onchain payment intent that you can sign and track on Testnet."
           : "Fill in the payment details, then choose Review payment before opening your wallet."
@@ -67,7 +67,7 @@ export function SendPaymentForm({
         </Badge>
         <CardTitle className="text-2xl font-semibold text-foreground">Send XLM on Testnet</CardTitle>
         <CardDescription className="max-w-xl text-sm leading-6 text-muted-foreground">
-          Choose how you want to send on Testnet: use Native transfer for a direct XLM payment, Contract mode for an onchain payment intent, or Escrow mode for a Level 3 escrow record.
+          Choose how you want to send on Testnet: use Native transfer for a direct XLM payment, Contract mode for an onchain payment intent, or Escrow mode for a live Level 3 escrow flow.
         </CardDescription>
       </CardHeader>
 
@@ -132,7 +132,7 @@ export function SendPaymentForm({
               >
                 <span className="font-medium">Escrow mode</span>
                 <span className={cn("text-xs", form.mode === "escrow" ? "text-primary-foreground/80" : "text-muted-foreground")}>
-                  Create an escrow record onchain
+                  Create a live escrow onchain
                 </span>
               </button>
             </div>
@@ -195,22 +195,30 @@ export function SendPaymentForm({
         <div className="space-y-4 rounded-[24px] border border-border/80 bg-background/35 px-4 py-4 sm:px-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">{isConfirming ? (isContractMode ? "Review contract payment" : "Review payment") : isContractMode ? "Contract payment ready" : "Ready to sign"}</p>
+              <p className="text-sm font-medium text-foreground">{isConfirming ? (isEscrowMode ? "Review escrow" : isContractMode ? "Review contract payment" : "Review payment") : isEscrowMode ? "Escrow ready" : isContractMode ? "Contract payment ready" : "Ready to sign"}</p>
               <p className="text-sm leading-6 text-muted-foreground">
                 {isConfirming
-                  ? isContractMode
-                    ? "Check the destination and amount before creating the payment intent in your wallet."
-                    : "Check the destination, amount, and memo before opening your wallet."
+                  ? isEscrowMode
+                    ? "Check the destination, amount, and memo before creating the live escrow in your wallet."
+                    : isContractMode
+                      ? "Check the destination and amount before creating the payment intent in your wallet."
+                      : "Check the destination, amount, and memo before opening your wallet."
                   : wallet.connected
-                    ? isContractMode
-                      ? "After you confirm, your wallet will create a payment intent on Stellar Testnet."
-                      : "After you confirm, your wallet will open a signature request for the payment."
+                    ? isEscrowMode
+                      ? "After you confirm, your wallet will create a live escrow on Stellar Testnet."
+                      : isContractMode
+                        ? "After you confirm, your wallet will create a payment intent on Stellar Testnet."
+                        : "After you confirm, your wallet will open a signature request for the payment."
                     : "Connect your wallet first to start sending."}
               </p>
               <p className="text-xs leading-5 text-muted-foreground/90">
-                {contractReady
-                  ? `Contract is connected (${contractConfig.contractId.slice(0, 10)}...).`
-                  : `Contract setup is missing. RPC target: ${contractConfig.rpcUrl}`}
+                {isEscrowMode
+                  ? escrowReady
+                    ? `Escrow contract is connected (${escrowConfig.contractId.slice(0, 10)}...).`
+                    : `Escrow setup is missing. RPC target: ${escrowConfig.rpcUrl}`
+                  : contractReady
+                    ? `Contract is connected (${contractConfig.contractId.slice(0, 10)}...).`
+                    : `Contract setup is missing. RPC target: ${contractConfig.rpcUrl}`}
               </p>
             </div>
             {!isConfirming ? (
@@ -221,7 +229,7 @@ export function SendPaymentForm({
                 size="lg"
                 className="w-full shrink-0 rounded-full bg-primary px-5 text-primary-foreground hover:bg-[#7c3aed] sm:w-auto"
               >
-                {form.mode === "contract" ? "Review contract payment" : "Review payment"}
+                {form.mode === "escrow" ? "Review escrow" : form.mode === "contract" ? "Review contract payment" : "Review payment"}
               </Button>
             ) : null}
           </div>
@@ -243,7 +251,7 @@ export function SendPaymentForm({
                 </div>
                 <div className="rounded-2xl border border-border/70 bg-background/60 px-4 py-3">
                   <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Mode</p>
-                  <p className="mt-2 text-sm font-medium text-foreground">{form.mode === "contract" ? "Contract" : "Native transfer"}</p>
+                  <p className="mt-2 text-sm font-medium text-foreground">{form.mode === "escrow" ? "Escrow" : form.mode === "contract" ? "Contract" : "Native transfer"}</p>
                 </div>
               </div>
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
