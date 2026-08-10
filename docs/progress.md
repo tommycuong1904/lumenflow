@@ -1,10 +1,10 @@
 # LumenFlow Progress Tracker
 
 ## Current Status
-Level 2 contract mode is deployed, wired live, and manually verified on both the website flow and the public Vercel deployment. Wallet session restore after refresh was also fixed and re-verified.
+Level 2 contract mode remains live and verified, while Level 3 escrow-vault foundation is now scaffolded on branch `feat/level3-foundation` with passing Rust tests/builds and a frontend read-only card wired for the new escrow contract.
 
 ## Current State
-- Working branch: `main`
+- Working branch: `feat/level3-foundation`
 - Multi-wallet foundation is integrated.
 - Native XLM transfer flow remains live.
 - Payment Intent contract is deployed to Stellar Testnet.
@@ -12,6 +12,8 @@ Level 2 contract mode is deployed, wired live, and manually verified on both the
 - Vercel production now has the required public contract env vars.
 - Contract mode was re-verified on the public Vercel app after env setup.
 - Wallet session restore after `F5` now keeps the connected state without reopening the wallet picker.
+- New `contracts/escrow-vault/` crate now has create/release/refund/get/count flows with 6 passing tests.
+- Home page now includes a read-only escrow vault status card backed by `get_escrow_count` when `NEXT_PUBLIC_ESCROW_VAULT_CONTRACT_ID` is configured.
 
 ## Deployment Artifacts
 - Contract ID: `CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO`
@@ -21,10 +23,13 @@ Level 2 contract mode is deployed, wired live, and manually verified on both the
 
 ## Validation Snapshot
 - App production build passes (`npm run build`).
-- Contract crate builds for `wasm32v1-none` in release mode.
-- Contract deployed successfully to Stellar Testnet.
+- TypeScript check passes (`npx tsc --noEmit`).
+- Escrow vault contract builds for `wasm32v1-none` in release mode.
+- Escrow vault Rust tests pass (`cargo test` -> 6 passed).
 - Native transfer flow remains preserved.
 - Contract-mode frontend invoke/read wiring is build-verified.
+- Escrow vault frontend read wiring is build-verified.
+- Local app endpoint responds successfully on port 3002 (`HTTP/1.1 200 OK`).
 - Public Vercel deployment was checked directly to confirm contract mode enablement after env setup.
 - Wallet connect was confirmed working again on the live website.
 - Contract mode was confirmed working in live website testing.

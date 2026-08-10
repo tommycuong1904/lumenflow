@@ -1,7 +1,7 @@
 import { BASE_FEE, Contract, Networks, Operation, TransactionBuilder, rpc, scValToNative } from "@stellar/stellar-sdk";
 
 import type { CreatePaymentIntentInput, PaymentIntentRecord } from "./contract";
-import { getPaymentIntentConfig } from "./contract";
+import { getEscrowVaultConfig, getPaymentIntentConfig } from "./contract";
 import { buildCreatePaymentIntentArgs, buildGetPaymentIntentArgs } from "./contract-payload";
 
 export type ContractSubmitStatus = "missing_contract" | "pending" | "success" | "error";
@@ -101,4 +101,26 @@ export async function getPaymentIntentRecord(id: string) {
   const server = createSorobanRpcServer();
   const response = await server.queryContract(contractId, "get_payment", { id: Number(id) }, Networks.TESTNET);
   return normalizePaymentRecord(response.result);
+}
+
+export async function getEscrowVaultCount() {
+  const { contractId, ready } = getEscrowVaultConfig();
+
+  if (!ready) {
+    return null;
+  }
+
+  const server = createSorobanRpcServer();
+  const response = await server.queryContract(contractId, "get_escrow_count", {}, Networks.TESTNET);
+  const result = response.result;
+
+  if (typeof result === "number") {
+    return result;
+  }
+
+  if (typeof result === "bigint") {
+    return Number(result);
+  }
+
+  return Number(scValToNative(result));
 }
