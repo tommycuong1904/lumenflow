@@ -1,17 +1,20 @@
 # LumenFlow — Stellar Testnet Payment App
 
-LumenFlow is a Level 2 Stellar Testnet payment dApp with multi-wallet support, native XLM transfer, and a live contract-backed payment intent flow.
+LumenFlow is a Stellar Testnet payment dApp with multi-wallet support, native XLM transfer, a live Payment Intent flow, and a live Level 3 escrow flow.
 
 ## Current Status
 
-Level 2 core requirements are implemented and verified:
+Level 2 core requirements are implemented and verified locally, and Level 3 escrow is live on local/Testnet wiring:
 - multi-wallet connection works on Stellar Testnet
 - XLM balance display works
 - native XLM transfer remains live
 - Payment Intent contract is deployed on Stellar Testnet
+- Escrow vault contract is deployed on Stellar Testnet
 - contract mode is called from the frontend
+- escrow mode is called from the frontend
 - transaction states are visible in the UI (`validating`, `signing`, `submitting`, `success`, `error`)
-- website flow was manually tested successfully on the live app, including the public Vercel deployment
+- local/live escrow flow has been verified against Testnet
+- public Vercel deployment still needs a separate credentialed sync before it reflects escrow mode
 
 ## Live capabilities
 
@@ -121,6 +124,9 @@ npm run start
 https://lumenflow-one.vercel.app/
 ```
 
+Public note:
+- the public site is currently behind local/Testnet escrow work until a separate Vercel credentialed redeploy is run
+
 ## How to use
 
 1. Open LumenFlow in a browser with a supported Stellar wallet installed.
@@ -140,9 +146,10 @@ https://lumenflow-one.vercel.app/
 - `npm run build` passes
 - contract crate builds for `wasm32v1-none` release target
 - contract is deployed to Stellar Testnet
-- wallet connect was re-verified on the live website
-- contract mode was manually tested successfully on the website
+- wallet connect was re-verified on the public website
+- contract mode was manually tested successfully on the public website
 - native transfer remains preserved alongside contract mode
+- escrow mode is verified locally/Testnet, but public website sync is still pending a separate redeploy
 
 ## Screenshots
 
