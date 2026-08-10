@@ -21,8 +21,9 @@ Level 2 core requirements are implemented and verified:
 - handle funded and unfunded Testnet accounts
 - send native XLM payments on Stellar Testnet
 - create Payment Intent records through a deployed Stellar smart contract
-- read contract-created payment records back into the UI
-- show transaction status, hash, recipient, amount, memo, and payment intent id
+- create Level 3 escrow records through a deployed Stellar smart contract
+- read contract-created payment and escrow records back into the UI
+- show transaction status, hash, recipient, amount, memo, and onchain id
 - save and reuse recipient addresses with the local Address Book
 
 ## Level 2 requirement coverage
@@ -32,9 +33,10 @@ Level 2 core requirements are implemented and verified:
   - wrong network: user is told to switch to Stellar Testnet
   - unfunded account: user is prompted to fund with Friendbot before sending
   - wallet / signing / submission failure: connect, signature, and submission failures surface as visible error states
-- **Contract deployed on Testnet**
-  - Contract ID: `CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO`
-- **Contract called from the frontend**
+- **Contracts deployed on Testnet**
+  - Payment Intent contract ID: `CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO`
+  - Escrow vault contract ID: `CDQHBEGEY5RBHNXMSP7FIYKTFWJXN4GHLP26JDJO4LX754II4X465SEM`
+- **Contracts called from the frontend**
   - contract mode builds, signs, submits, and reads back a Payment Intent from the frontend flow
 - **Transaction status visible**
   - UI states: `validating`, `signing`, `submitting`, `success`, `error`
@@ -91,6 +93,7 @@ Required frontend contract values:
 ```env
 NEXT_PUBLIC_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
 NEXT_PUBLIC_PAYMENT_INTENT_CONTRACT_ID=CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO
+NEXT_PUBLIC_ESCROW_VAULT_CONTRACT_ID=CDQHBEGEY5RBHNXMSP7FIYKTFWJXN4GHLP26JDJO4LX754II4X465SEM
 ```
 
 ### Run development server
