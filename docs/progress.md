@@ -39,6 +39,8 @@ Level 2 contract mode remains live and verified, while Level 3 escrow-vault foun
 - Escrow mode frontend write-foundation wiring is build-verified.
 - Escrow vault contract is now deployed on Stellar Testnet and wired into local frontend env.
 - Live escrow verify now passes end-to-end for create + count + detail read on the redeployed Level 3 contract.
+- UI copy now reflects escrow as a live Testnet path rather than a foundation placeholder.
+- Public deployment is still pending separate Vercel credentialed sync; local/live contract state is ahead of the public site.
 - Local app endpoint responds successfully on port 3002 (`HTTP/1.1 200 OK`).
 - Public Vercel deployment was checked directly to confirm contract mode enablement after env setup.
 - Wallet connect was confirmed working again on the live website.
