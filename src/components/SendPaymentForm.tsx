@@ -216,9 +216,11 @@ export function SendPaymentForm({
                   ? escrowReady
                     ? `Escrow contract is connected (${escrowConfig.contractId.slice(0, 10)}...).`
                     : `Escrow setup is missing. RPC target: ${escrowConfig.rpcUrl}`
-                  : contractReady
-                    ? `Contract is connected (${contractConfig.contractId.slice(0, 10)}...).`
-                    : `Contract setup is missing. RPC target: ${contractConfig.rpcUrl}`}
+                  : isContractMode
+                    ? contractReady
+                      ? `Payment intent contract is connected (${contractConfig.contractId.slice(0, 10)}...).`
+                      : `Payment intent setup is missing. RPC target: ${contractConfig.rpcUrl}`
+                    : "Native transfer uses Horizon Testnet directly; no contract is required."}
               </p>
             </div>
             {!isConfirming ? (
