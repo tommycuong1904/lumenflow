@@ -315,7 +315,23 @@ export default function Home() {
 
       if (isEscrowMode) {
         const txDetails = await getSorobanTransaction(submission.hash);
-        const escrowId = txDetails.status === "SUCCESS" && txDetails.returnValue
+
+        if (txDetails.status !== "SUCCESS") {
+          setTx({
+            status: "error",
+            hash: submission.hash,
+            message: `Escrow invocation was submitted, but Soroban returned ${txDetails.status}. Open the transaction for details.`,
+            amount: form.amount.trim(),
+            recipient: form.recipient.trim(),
+            memo: form.memo.trim() || null,
+            mode: "escrow",
+            paymentIntentId: null,
+          });
+          setIsConfirmingPayment(false);
+          return;
+        }
+
+        const escrowId = txDetails.returnValue
           ? String(txDetails.returnValue.value())
           : null;
 
@@ -334,7 +350,23 @@ export default function Home() {
         await refreshEscrowVaultRead();
       } else if (isContractMode) {
         const txDetails = await getSorobanTransaction(submission.hash);
-        const paymentIntentId = txDetails.status === "SUCCESS" && txDetails.returnValue
+
+        if (txDetails.status !== "SUCCESS") {
+          setTx({
+            status: "error",
+            hash: submission.hash,
+            message: `Contract invocation was submitted, but Soroban returned ${txDetails.status}. Open the transaction for details.`,
+            amount: form.amount.trim(),
+            recipient: form.recipient.trim(),
+            memo: form.memo.trim() || null,
+            mode: "contract",
+            paymentIntentId: null,
+          });
+          setIsConfirmingPayment(false);
+          return;
+        }
+
+        const paymentIntentId = txDetails.returnValue
           ? String(txDetails.returnValue.value())
           : null;
 
