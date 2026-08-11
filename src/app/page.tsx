@@ -199,9 +199,11 @@ export default function Home() {
       status: "idle",
       hash: null,
       message:
-        form.mode === "contract"
-          ? "Contract payment details look valid. Review them below, then confirm to create the payment intent on Stellar Testnet."
-          : "Payment details look valid. Review them below, then confirm to open your wallet.",
+        form.mode === "escrow"
+          ? "Escrow details look valid. Review them below, then confirm to create the escrow on Stellar Testnet."
+          : form.mode === "contract"
+            ? "Contract payment details look valid. Review them below, then confirm to create the payment intent on Stellar Testnet."
+            : "Payment details look valid. Review them below, then confirm to open your wallet.",
       mode: form.mode ?? "native_transfer",
       paymentIntentId: null,
     });
