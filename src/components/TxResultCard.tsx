@@ -23,6 +23,18 @@ function getExplorerLink(hash: string) {
   return `https://stellar.expert/explorer/testnet/tx/${hash}`;
 }
 
+function getModeLabel(mode: TxState["mode"]) {
+  if (mode === "escrow") return "Escrow";
+  if (mode === "contract") return "Contract";
+  return "Native transfer";
+}
+
+function getOnchainRecordLabel(mode: TxState["mode"]) {
+  if (mode === "escrow") return "Escrow ID";
+  if (mode === "contract") return "Payment intent ID";
+  return "Onchain record ID";
+}
+
 export function TxResultCard({ tx }: TxResultCardProps) {
   const isSuccess = tx.status === "success";
   const isError = tx.status === "error";
@@ -96,12 +108,12 @@ export function TxResultCard({ tx }: TxResultCardProps) {
                   {tx.mode ? (
                     <div className="rounded-2xl border border-border/60 bg-secondary/25 px-4 py-3">
                       <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Mode</p>
-                      <p className="mt-2 text-sm font-medium text-foreground">{tx.mode === "escrow" ? "Escrow" : tx.mode === "contract" ? "Contract" : "Native transfer"}</p>
+                      <p className="mt-2 text-sm font-medium text-foreground">{getModeLabel(tx.mode)}</p>
                     </div>
                   ) : null}
                   {tx.onchainRecordId ? (
                     <div className="rounded-2xl border border-border/60 bg-secondary/25 px-4 py-3">
-                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">{tx.mode === "escrow" ? "Escrow ID" : "Payment intent"}</p>
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">{getOnchainRecordLabel(tx.mode)}</p>
                       <p className="mt-2 break-all text-sm font-medium text-foreground">{tx.onchainRecordId}</p>
                     </div>
                   ) : null}
