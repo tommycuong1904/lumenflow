@@ -17,7 +17,7 @@ import type { EscrowVaultRecord } from "@/lib/stellar/contract";
 import { createPaymentTransaction } from "@/lib/stellar/transactions";
 import { isValidAmount, isValidPublicKey } from "@/lib/stellar/validation";
 import { signWalletTransaction } from "@/lib/stellar/wallet";
-import { getEscrowVaultConfig } from "@/lib/stellar/contract";
+import { getEscrowVaultConfig, getPaymentIntentConfig } from "@/lib/stellar/contract";
 import { truncateAddress } from "@/lib/utils/format";
 
 const initialBalanceState: BalanceState = {
@@ -191,6 +191,18 @@ export default function Home() {
 
     if (!isValidAmount(form.amount)) {
       setTx({ status: "error", hash: null, message: "Enter a valid positive XLM amount." });
+      setIsConfirmingPayment(false);
+      return;
+    }
+
+    if (form.mode === "contract" && !getPaymentIntentConfig().ready) {
+      setTx({ status: "error", hash: null, message: "Payment intent contract setup is missing. Check the public contract ID and RPC env vars." });
+      setIsConfirmingPayment(false);
+      return;
+    }
+
+    if (form.mode === "escrow" && !getEscrowVaultConfig().ready) {
+      setTx({ status: "error", hash: null, message: "Escrow contract setup is missing. Check the public escrow contract ID and RPC env vars." });
       setIsConfirmingPayment(false);
       return;
     }
