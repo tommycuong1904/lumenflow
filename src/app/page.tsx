@@ -168,7 +168,7 @@ export default function Home() {
 
   function handleSubmit() {
     if (!wallet.connected || !wallet.publicKey) {
-      setTx({ status: "error", hash: null, message: "Connect a Stellar wallet before sending a payment." });
+      setTx({ status: "error", hash: null, message: "Connect a Stellar wallet before starting a transaction." });
       setIsConfirmingTransaction(false);
       return;
     }
@@ -249,7 +249,7 @@ export default function Home() {
 
   async function handleConfirmSubmit() {
     if (!wallet.connected || !wallet.publicKey) {
-      setTx({ status: "error", hash: null, message: "Connect a Stellar wallet before sending a payment." });
+      setTx({ status: "error", hash: null, message: "Connect a Stellar wallet before starting a transaction." });
       setIsConfirmingTransaction(false);
       return;
     }
@@ -396,7 +396,7 @@ export default function Home() {
 
       await refreshBalance(wallet.publicKey);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "The payment could not be completed on Stellar Testnet.";
+      const message = error instanceof Error ? error.message : "The transaction could not be completed on Stellar Testnet.";
       setTx({ status: "error", hash: null, message, mode: form.mode ?? "native_transfer", onchainRecordId: null });
       setIsConfirmingTransaction(false);
     }
@@ -450,7 +450,7 @@ export default function Home() {
                 ))}
               </ul>
               <div className="rounded-2xl border border-border/80 bg-secondary/35 px-4 py-4 text-sm leading-6 text-muted-foreground">
-                All three payment paths are ready on Testnet: use Native transfer for direct XLM sends, Contract mode to create a payment intent onchain, or Escrow mode to create a live Level 3 escrow.
+                All three transaction paths are ready on Testnet: use Native transfer for direct XLM sends, Contract mode to create a payment intent onchain, or Escrow mode to create a live Level 3 escrow.
               </div>
             </CardContent>
           </Card>
