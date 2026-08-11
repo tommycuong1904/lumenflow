@@ -45,6 +45,7 @@ Payment-intent flow remains live and verified, and Level 3 escrow-vault is now d
 - Native-mode readiness copy now correctly says Horizon Testnet is used directly instead of implying a contract is connected.
 - Escrow read card now uses a dedicated loading message before showing empty-state guidance.
 - Escrow review state now has dedicated pre-signing copy instead of falling back to native payment wording.
+- Escrow signed transactions now submit through the Soroban contract RPC path instead of the native Horizon submit helper.
 - Local app endpoint responds successfully on port 3002 (`HTTP/1.1 200 OK`).
 - Public Vercel deployment was checked directly to confirm contract mode enablement after env setup.
 - Wallet connect was confirmed working again on the live website.

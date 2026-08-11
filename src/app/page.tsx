@@ -297,7 +297,7 @@ export default function Home() {
         paymentIntentId: null,
       });
 
-      const submission = isContractMode
+      const submission = isContractMode || isEscrowMode
         ? await submitSignedContractTransaction(signedResult.signedTxXdr)
         : await submitSignedTransaction(signedResult.signedTxXdr);
 
