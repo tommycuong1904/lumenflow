@@ -71,7 +71,7 @@ export default function Home() {
   const [balance, setBalance] = useState<BalanceState>(initialBalanceState);
   const [tx, setTx] = useState<TxState>(initialTxState);
   const [form, setForm] = useState<SendFormState>(initialFormState);
-  const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
+  const [isConfirmingTransaction, setIsConfirmingTransaction] = useState(false);
   const [escrowVaultRead, setEscrowVaultRead] = useState<EscrowVaultReadState>(initialEscrowVaultReadState);
 
   const canRefreshBalance = useMemo(() => Boolean(wallet.publicKey), [wallet.publicKey]);
@@ -163,13 +163,13 @@ export default function Home() {
     setBalance(initialBalanceState);
     setTx(initialTxState);
     setForm(initialFormState);
-    setIsConfirmingPayment(false);
+    setIsConfirmingTransaction(false);
   }
 
   function handleSubmit() {
     if (!wallet.connected || !wallet.publicKey) {
       setTx({ status: "error", hash: null, message: "Connect a Stellar wallet before sending a payment." });
-      setIsConfirmingPayment(false);
+      setIsConfirmingTransaction(false);
       return;
     }
 
@@ -179,31 +179,31 @@ export default function Home() {
         hash: null,
         message: "Fund your Testnet account with Friendbot before sending XLM.",
       });
-      setIsConfirmingPayment(false);
+      setIsConfirmingTransaction(false);
       return;
     }
 
     if (!isValidPublicKey(form.recipient)) {
       setTx({ status: "error", hash: null, message: "Recipient address is invalid." });
-      setIsConfirmingPayment(false);
+      setIsConfirmingTransaction(false);
       return;
     }
 
     if (!isValidAmount(form.amount)) {
       setTx({ status: "error", hash: null, message: "Enter a valid positive XLM amount." });
-      setIsConfirmingPayment(false);
+      setIsConfirmingTransaction(false);
       return;
     }
 
     if (form.mode === "contract" && !getPaymentIntentConfig().ready) {
       setTx({ status: "error", hash: null, message: "Payment intent contract setup is missing. Check the public contract ID and RPC env vars." });
-      setIsConfirmingPayment(false);
+      setIsConfirmingTransaction(false);
       return;
     }
 
     if (form.mode === "escrow" && !getEscrowVaultConfig().ready) {
       setTx({ status: "error", hash: null, message: "Escrow contract setup is missing. Check the public escrow contract ID and RPC env vars." });
-      setIsConfirmingPayment(false);
+      setIsConfirmingTransaction(false);
       return;
     }
 
@@ -219,11 +219,11 @@ export default function Home() {
       mode: form.mode ?? "native_transfer",
       onchainRecordId: null,
     });
-    setIsConfirmingPayment(true);
+    setIsConfirmingTransaction(true);
   }
 
   function handleCancelConfirmation() {
-    setIsConfirmingPayment(false);
+    setIsConfirmingTransaction(false);
     setTx((current) => ({
       ...current,
       status: current.status === "error" ? "error" : "idle",
@@ -244,13 +244,13 @@ export default function Home() {
       mode,
       onchainRecordId: null,
     });
-    setIsConfirmingPayment(false);
+    setIsConfirmingTransaction(false);
   }
 
   async function handleConfirmSubmit() {
     if (!wallet.connected || !wallet.publicKey) {
       setTx({ status: "error", hash: null, message: "Connect a Stellar wallet before sending a payment." });
-      setIsConfirmingPayment(false);
+      setIsConfirmingTransaction(false);
       return;
     }
 
@@ -309,7 +309,7 @@ export default function Home() {
           mode: isEscrowMode ? "escrow" : isContractMode ? "contract" : "native_transfer",
           onchainRecordId: null,
         });
-        setIsConfirmingPayment(false);
+        setIsConfirmingTransaction(false);
         return;
       }
 
@@ -392,13 +392,13 @@ export default function Home() {
           onchainRecordId: null,
         });
       }
-      setIsConfirmingPayment(false);
+      setIsConfirmingTransaction(false);
 
       await refreshBalance(wallet.publicKey);
     } catch (error) {
       const message = error instanceof Error ? error.message : "The payment could not be completed on Stellar Testnet.";
       setTx({ status: "error", hash: null, message, mode: form.mode ?? "native_transfer", onchainRecordId: null });
-      setIsConfirmingPayment(false);
+      setIsConfirmingTransaction(false);
     }
   }
 
@@ -560,7 +560,7 @@ export default function Home() {
           wallet={wallet}
           form={form}
           tx={tx}
-          isConfirming={isConfirmingPayment}
+          isConfirming={isConfirmingTransaction}
           onChange={(patch) => setForm((current) => ({ ...current, ...patch }))}
           onSubmit={handleSubmit}
           onConfirm={handleConfirmSubmit}
