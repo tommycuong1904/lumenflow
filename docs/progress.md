@@ -54,7 +54,8 @@ Payment-intent flow remains live and verified, and Level 3 escrow-vault is now d
 
 ## Branch / Repo State
 - Base branch: `main`
-- Active branch: `main`
+- Active local branch: `feat/level3-foundation`
+- Remote remains intentionally behind Level 3 local work until explicitly pushed.
 - Latest verified fix on remote: `75c922e` (`fix: restore wallet session without reopening picker`)
 
 ## Remaining Work
