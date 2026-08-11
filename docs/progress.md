@@ -43,6 +43,7 @@ Payment-intent flow remains live and verified, and Level 3 escrow-vault is now d
 - Public deployment is still pending separate Vercel credentialed sync; local/live contract state is ahead of the public site.
 - Footer copy and links now reflect the live escrow path, dual contract explorers, and Level 2 + Level 3 state.
 - Native-mode readiness copy now correctly says Horizon Testnet is used directly instead of implying a contract is connected.
+- Escrow read card now uses a dedicated loading message before showing empty-state guidance.
 - Local app endpoint responds successfully on port 3002 (`HTTP/1.1 200 OK`).
 - Public Vercel deployment was checked directly to confirm contract mode enablement after env setup.
 - Wallet connect was confirmed working again on the live website.

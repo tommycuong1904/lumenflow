@@ -454,9 +454,11 @@ export default function Home() {
                 {escrowVaultRead.error
                   ? escrowVaultRead.error
                   : escrowVaultRead.configured
-                    ? escrowVaultRead.latest
-                      ? "Latest escrow record is being read live from the deployed contract and shown below."
-                      : "Escrow contract is live. Create a new escrow to populate the detail panel."
+                    ? escrowVaultRead.loading
+                      ? "Reading the live escrow contract on Stellar Testnet..."
+                      : escrowVaultRead.latest
+                        ? "Latest escrow record is being read live from the deployed contract and shown below."
+                        : "Escrow contract is live. Create a new escrow to populate the detail panel."
                     : "Add NEXT_PUBLIC_ESCROW_VAULT_CONTRACT_ID to enable the live escrow contract read path."}
               </div>
             </div>
