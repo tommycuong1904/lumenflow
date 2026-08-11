@@ -48,7 +48,7 @@ Payment-intent flow remains live and verified, and Level 3 escrow-vault is now d
 - Escrow signed transactions now submit through the Soroban contract RPC path instead of the native Horizon submit helper.
 - Transaction result card now labels escrow mode and escrow IDs correctly.
 - Submit review now blocks contract/escrow modes with explicit setup errors if required public env config is missing.
-- Contract/escrow result handling now treats non-SUCCESS Soroban transaction status as an error instead of reporting success from hash-only submission.
+- Contract/escrow result handling now treats non-SUCCESS Soroban transaction status as an error instead of reporting success from hash-only submission; shared helper keeps both branches consistent.
 - Local app endpoint responds successfully on port 3002 (`HTTP/1.1 200 OK`).
 - Public Vercel deployment was checked directly to confirm contract mode enablement after env setup.
 - Wallet connect was confirmed working again on the live website.

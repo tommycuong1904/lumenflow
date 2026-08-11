@@ -231,6 +231,22 @@ export default function Home() {
     }));
   }
 
+  function showFailedContractInvocation(mode: "contract" | "escrow", hash: string, status: string) {
+    const label = mode === "escrow" ? "Escrow" : "Contract";
+
+    setTx({
+      status: "error",
+      hash,
+      message: `${label} invocation was submitted, but Soroban returned ${status}. Open the transaction for details.`,
+      amount: form.amount.trim(),
+      recipient: form.recipient.trim(),
+      memo: form.memo.trim() || null,
+      mode,
+      paymentIntentId: null,
+    });
+    setIsConfirmingPayment(false);
+  }
+
   async function handleConfirmSubmit() {
     if (!wallet.connected || !wallet.publicKey) {
       setTx({ status: "error", hash: null, message: "Connect a Stellar wallet before sending a payment." });
@@ -317,17 +333,7 @@ export default function Home() {
         const txDetails = await getSorobanTransaction(submission.hash);
 
         if (txDetails.status !== "SUCCESS") {
-          setTx({
-            status: "error",
-            hash: submission.hash,
-            message: `Escrow invocation was submitted, but Soroban returned ${txDetails.status}. Open the transaction for details.`,
-            amount: form.amount.trim(),
-            recipient: form.recipient.trim(),
-            memo: form.memo.trim() || null,
-            mode: "escrow",
-            paymentIntentId: null,
-          });
-          setIsConfirmingPayment(false);
+          showFailedContractInvocation("escrow", submission.hash, txDetails.status);
           return;
         }
 
@@ -352,17 +358,7 @@ export default function Home() {
         const txDetails = await getSorobanTransaction(submission.hash);
 
         if (txDetails.status !== "SUCCESS") {
-          setTx({
-            status: "error",
-            hash: submission.hash,
-            message: `Contract invocation was submitted, but Soroban returned ${txDetails.status}. Open the transaction for details.`,
-            amount: form.amount.trim(),
-            recipient: form.recipient.trim(),
-            memo: form.memo.trim() || null,
-            mode: "contract",
-            paymentIntentId: null,
-          });
-          setIsConfirmingPayment(false);
+          showFailedContractInvocation("contract", submission.hash, txDetails.status);
           return;
         }
 
