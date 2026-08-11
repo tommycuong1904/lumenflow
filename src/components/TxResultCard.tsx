@@ -46,9 +46,9 @@ export function TxResultCard({ tx }: TxResultCardProps) {
         <Badge variant="outline" className="w-fit border-primary/20 bg-primary/8 px-3 py-1 text-[11px] tracking-[0.24em] text-primary uppercase">
           Result
         </Badge>
-        <CardTitle className="text-2xl font-semibold text-foreground">Payment status</CardTitle>
+        <CardTitle className="text-2xl font-semibold text-foreground">Transaction status</CardTitle>
         <CardDescription className="text-sm leading-6 text-muted-foreground">
-          Track each payment from review to submission, then open the final transaction on Stellar Expert if you want the full onchain details.
+          Track native payments, payment intents, and escrow invocations from review to submission, then open the final transaction on Stellar Expert for full onchain details.
         </CardDescription>
       </CardHeader>
 
