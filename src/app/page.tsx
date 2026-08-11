@@ -32,7 +32,7 @@ const initialTxState: TxState = {
   hash: null,
   message: null,
   mode: "native_transfer",
-  paymentIntentId: null,
+  onchainRecordId: null,
 };
 
 const initialEscrowVaultReadState: EscrowVaultReadState = {
@@ -217,7 +217,7 @@ export default function Home() {
             ? "Contract payment details look valid. Review them below, then confirm to create the payment intent on Stellar Testnet."
             : "Payment details look valid. Review them below, then confirm to open your wallet.",
       mode: form.mode ?? "native_transfer",
-      paymentIntentId: null,
+      onchainRecordId: null,
     });
     setIsConfirmingPayment(true);
   }
@@ -242,7 +242,7 @@ export default function Home() {
       recipient: form.recipient.trim(),
       memo: form.memo.trim() || null,
       mode,
-      paymentIntentId: null,
+      onchainRecordId: null,
     });
     setIsConfirmingPayment(false);
   }
@@ -267,7 +267,7 @@ export default function Home() {
             ? "Preparing the payment intent transaction for wallet signing..."
             : "Preparing the Stellar Testnet payment for signing...",
         mode: isEscrowMode ? "escrow" : isContractMode ? "contract" : "native_transfer",
-        paymentIntentId: null,
+        onchainRecordId: null,
       });
 
       const transactionXdr = isEscrowMode
@@ -297,7 +297,7 @@ export default function Home() {
             ? "Review the contract invocation in your wallet and approve the signature to continue."
             : "Review the request in your wallet and approve the signature to continue.",
         mode: isEscrowMode ? "escrow" : isContractMode ? "contract" : "native_transfer",
-        paymentIntentId: null,
+        onchainRecordId: null,
       });
 
       const signedResult = await signWalletTransaction(transactionXdr, wallet.publicKey);
@@ -307,7 +307,7 @@ export default function Home() {
           hash: null,
           message: signedResult.error ?? "Transaction signing failed.",
           mode: isEscrowMode ? "escrow" : isContractMode ? "contract" : "native_transfer",
-          paymentIntentId: null,
+          onchainRecordId: null,
         });
         setIsConfirmingPayment(false);
         return;
@@ -322,7 +322,7 @@ export default function Home() {
             ? "Submitting the signed contract invocation to Stellar Testnet..."
             : "Submitting the signed payment to Stellar Testnet...",
         mode: isEscrowMode ? "escrow" : isContractMode ? "contract" : "native_transfer",
-        paymentIntentId: null,
+        onchainRecordId: null,
       });
 
       const submission = isContractMode || isEscrowMode
@@ -351,7 +351,7 @@ export default function Home() {
           recipient: form.recipient.trim(),
           memo: form.memo.trim() || null,
           mode: "escrow",
-          paymentIntentId: escrowId,
+          onchainRecordId: escrowId,
         });
         await refreshEscrowVaultRead();
       } else if (isContractMode) {
@@ -362,23 +362,23 @@ export default function Home() {
           return;
         }
 
-        const paymentIntentId = txDetails.returnValue
+        const onchainRecordId = txDetails.returnValue
           ? String(txDetails.returnValue.value())
           : null;
 
-        const paymentRecord = paymentIntentId ? await getPaymentIntentRecord(paymentIntentId) : null;
+        const paymentRecord = onchainRecordId ? await getPaymentIntentRecord(onchainRecordId) : null;
 
         setTx({
           status: "success",
           hash: submission.hash,
-          message: paymentIntentId
-            ? `Payment intent created on Stellar Testnet with onchain id #${paymentIntentId}.`
+          message: onchainRecordId
+            ? `Payment intent created on Stellar Testnet with onchain id #${onchainRecordId}.`
             : "Contract invocation submitted to Stellar Testnet successfully.",
           amount: paymentRecord?.amount ?? form.amount.trim(),
           recipient: paymentRecord?.recipient ?? form.recipient.trim(),
           memo: form.memo.trim() || null,
           mode: "contract",
-          paymentIntentId,
+          onchainRecordId,
         });
       } else {
         setTx({
@@ -389,7 +389,7 @@ export default function Home() {
           recipient: form.recipient.trim(),
           memo: form.memo.trim() || null,
           mode: "native_transfer",
-          paymentIntentId: null,
+          onchainRecordId: null,
         });
       }
       setIsConfirmingPayment(false);
@@ -397,7 +397,7 @@ export default function Home() {
       await refreshBalance(wallet.publicKey);
     } catch (error) {
       const message = error instanceof Error ? error.message : "The payment could not be completed on Stellar Testnet.";
-      setTx({ status: "error", hash: null, message, mode: form.mode ?? "native_transfer", paymentIntentId: null });
+      setTx({ status: "error", hash: null, message, mode: form.mode ?? "native_transfer", onchainRecordId: null });
       setIsConfirmingPayment(false);
     }
   }

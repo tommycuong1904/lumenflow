@@ -99,10 +99,10 @@ export function TxResultCard({ tx }: TxResultCardProps) {
                       <p className="mt-2 text-sm font-medium text-foreground">{tx.mode === "escrow" ? "Escrow" : tx.mode === "contract" ? "Contract" : "Native transfer"}</p>
                     </div>
                   ) : null}
-                  {tx.paymentIntentId ? (
+                  {tx.onchainRecordId ? (
                     <div className="rounded-2xl border border-border/60 bg-secondary/25 px-4 py-3">
                       <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">{tx.mode === "escrow" ? "Escrow ID" : "Payment intent"}</p>
-                      <p className="mt-2 break-all text-sm font-medium text-foreground">{tx.paymentIntentId}</p>
+                      <p className="mt-2 break-all text-sm font-medium text-foreground">{tx.onchainRecordId}</p>
                     </div>
                   ) : null}
                 </div>

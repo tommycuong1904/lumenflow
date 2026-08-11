@@ -24,7 +24,7 @@ export type TxState = {
   recipient?: string | null;
   memo?: string | null;
   mode?: "native_transfer" | "contract" | "escrow" | null;
-  paymentIntentId?: string | null;
+  onchainRecordId?: string | null;
 };
 
 export type SendFormState = {
