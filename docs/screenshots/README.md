@@ -2,7 +2,7 @@
 
 Capture screenshots after running LumenFlow on Stellar Testnet with a supported wallet.
 
-## Recommended submission set for Level 2
+## Recommended submission set
 
 1. `01-wallet-connected.png`
    - wallet connected
@@ -29,9 +29,16 @@ Capture screenshots after running LumenFlow on Stellar Testnet with a supported 
 6. `06-wallet-disconnected-state.png`
    - app before connection
 
-7. `10-wallet-options-available.png` *(recommended for Level 2 submission checklist)*
+7. `10-wallet-options-available.png`
    - wallet options / wallet picker visible
    - proves multi-wallet selection is available in the UI
+
+8. `11-escrow-mode-selected.png`
+   - Escrow mode selected in the payment form
+   - recipient / amount / memo filled for an escrow create
+
+9. `12-escrow-live-record.png`
+   - escrow read card showing a live Testnet escrow record (count > 0, latest escrow detail visible)
 
 ## Additional optional screenshots
 - `07-dark-light-mode.png`

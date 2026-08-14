@@ -23,6 +23,18 @@ function getExplorerLink(hash: string) {
   return `https://stellar.expert/explorer/testnet/tx/${hash}`;
 }
 
+function getModeLabel(mode: TxState["mode"]) {
+  if (mode === "escrow") return "Escrow";
+  if (mode === "contract") return "Contract";
+  return "Native transfer";
+}
+
+function getOnchainRecordLabel(mode: TxState["mode"]) {
+  if (mode === "escrow") return "Escrow ID";
+  if (mode === "contract") return "Payment intent ID";
+  return "Onchain record ID";
+}
+
 export function TxResultCard({ tx }: TxResultCardProps) {
   const isSuccess = tx.status === "success";
   const isError = tx.status === "error";
@@ -34,9 +46,9 @@ export function TxResultCard({ tx }: TxResultCardProps) {
         <Badge variant="outline" className="w-fit border-primary/20 bg-primary/8 px-3 py-1 text-[11px] tracking-[0.24em] text-primary uppercase">
           Result
         </Badge>
-        <CardTitle className="text-2xl font-semibold text-foreground">Payment status</CardTitle>
+        <CardTitle className="text-2xl font-semibold text-foreground">Transaction status</CardTitle>
         <CardDescription className="text-sm leading-6 text-muted-foreground">
-          Track each payment from review to submission, then open the final transaction on Stellar Expert if you want the full onchain details.
+          Track native payments, payment intents, and escrow invocations from review to submission, then open the final transaction on Stellar Expert for full onchain details.
         </CardDescription>
       </CardHeader>
 
@@ -96,13 +108,13 @@ export function TxResultCard({ tx }: TxResultCardProps) {
                   {tx.mode ? (
                     <div className="rounded-2xl border border-border/60 bg-secondary/25 px-4 py-3">
                       <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Mode</p>
-                      <p className="mt-2 text-sm font-medium text-foreground">{tx.mode === "contract" ? "Contract" : "Native transfer"}</p>
+                      <p className="mt-2 text-sm font-medium text-foreground">{getModeLabel(tx.mode)}</p>
                     </div>
                   ) : null}
-                  {tx.paymentIntentId ? (
+                  {tx.onchainRecordId ? (
                     <div className="rounded-2xl border border-border/60 bg-secondary/25 px-4 py-3">
-                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Payment intent</p>
-                      <p className="mt-2 break-all text-sm font-medium text-foreground">{tx.paymentIntentId}</p>
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">{getOnchainRecordLabel(tx.mode)}</p>
+                      <p className="mt-2 break-all text-sm font-medium text-foreground">{tx.onchainRecordId}</p>
                     </div>
                   ) : null}
                 </div>

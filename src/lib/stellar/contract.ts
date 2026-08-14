@@ -1,11 +1,12 @@
 import { SOROBAN_RPC_URL } from "./constants";
 
 export const PAYMENT_INTENT_CONTRACT_ID = process.env.NEXT_PUBLIC_PAYMENT_INTENT_CONTRACT_ID ?? "";
+export const ESCROW_VAULT_CONTRACT_ID = process.env.NEXT_PUBLIC_ESCROW_VAULT_CONTRACT_ID ?? "";
 export const PAYMENT_INTENT_RPC_URL = process.env.NEXT_PUBLIC_SOROBAN_RPC_URL ?? SOROBAN_RPC_URL;
 
 export type PaymentIntentStatus = "pending" | "completed" | "cancelled";
 
-export type PaymentIntentMode = "native_transfer" | "contract";
+export type PaymentIntentMode = "native_transfer" | "contract" | "escrow";
 
 export type PaymentIntentRecord = {
   id: string;
@@ -20,12 +21,42 @@ export type CreatePaymentIntentInput = {
   amount: string;
 };
 
+export type CreateEscrowVaultInput = {
+  payee: string;
+  amount: string;
+  memo: string;
+};
+
+export type EscrowVaultStatus = "created" | "released" | "refunded";
+
+export type EscrowVaultRecord = {
+  id: string;
+  payer: string;
+  payee: string;
+  amount: string;
+  memo: string;
+  status: EscrowVaultStatus;
+  createdAt: number;
+  updatedAt: number;
+};
+
 export function isPaymentIntentContractConfigured() {
   return PAYMENT_INTENT_CONTRACT_ID.trim().length > 0;
 }
 
 export function getPaymentIntentConfig() {
   const contractId = PAYMENT_INTENT_CONTRACT_ID.trim();
+  const rpcUrl = PAYMENT_INTENT_RPC_URL.trim();
+
+  return {
+    contractId,
+    rpcUrl,
+    ready: contractId.length > 0 && rpcUrl.length > 0,
+  };
+}
+
+export function getEscrowVaultConfig() {
+  const contractId = ESCROW_VAULT_CONTRACT_ID.trim();
   const rpcUrl = PAYMENT_INTENT_RPC_URL.trim();
 
   return {
