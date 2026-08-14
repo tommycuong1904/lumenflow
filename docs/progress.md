@@ -58,6 +58,7 @@ Payment-intent flow remains live and verified, and Level 3 escrow-vault is now d
 
 ## Blockers
 - No current code blocker for Level 2 core flow.
+- `.env.example` is now tracked in git (previously blocked by `.gitignore`'s `.env*` rule, force-added since it holds only variable names, no secrets).
 - Only optional polish / docs / packaging work remains.
 
 ## Branch / Repo State
