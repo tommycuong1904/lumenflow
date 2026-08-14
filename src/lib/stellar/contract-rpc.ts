@@ -84,6 +84,33 @@ export async function createEscrowVaultTransactionXdr(sourcePublicKey: string, i
   return prepared.toXDR();
 }
 
+const TRANSACTION_POLL_INTERVAL_MS = 1500;
+const TRANSACTION_POLL_MAX_ATTEMPTS = 10;
+
+/**
+ * Soroban RPC does not index a submitted transaction instantly. Right after
+ * `sendTransaction`, `getTransaction` legitimately returns NOT_FOUND for a
+ * few seconds while the ledger ingests it. Treat NOT_FOUND as "still
+ * pending" and poll until we see a terminal status (SUCCESS/FAILED) or run
+ * out of attempts, instead of surfacing NOT_FOUND as an error on the first check.
+ */
+export async function waitForSorobanTransaction(hash: string) {
+  let lastResult = await getSorobanTransaction(hash);
+
+  for (let attempt = 1; attempt < TRANSACTION_POLL_MAX_ATTEMPTS; attempt += 1) {
+    const status = String(lastResult.status ?? "").toUpperCase();
+
+    if (status !== "NOT_FOUND") {
+      return lastResult;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, TRANSACTION_POLL_INTERVAL_MS));
+    lastResult = await getSorobanTransaction(hash);
+  }
+
+  return lastResult;
+}
+
 export async function submitSignedContractTransaction(signedTxXdr: string) {
   const server = createSorobanRpcServer();
   const transaction = TransactionBuilder.fromXDR(signedTxXdr, Networks.TESTNET);

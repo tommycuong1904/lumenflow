@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useLumenFlowWallet } from "@/components/LumenFlowShell";
 import { getXlmBalance } from "@/lib/stellar/horizon";
-import { getEscrowVaultCount, getEscrowVaultRecord, getPaymentIntentRecord, getSorobanTransaction, submitSignedContractTransaction, createEscrowVaultTransactionXdr, createPaymentIntentTransactionXdr } from "@/lib/stellar/contract-rpc";
+import { getEscrowVaultCount, getEscrowVaultRecord, getPaymentIntentRecord, waitForSorobanTransaction, submitSignedContractTransaction, createEscrowVaultTransactionXdr, createPaymentIntentTransactionXdr } from "@/lib/stellar/contract-rpc";
 import { submitSignedTransaction } from "@/lib/stellar/submit";
 import type { BalanceState, SendFormState, TxState } from "@/lib/stellar/types";
 import type { EscrowVaultRecord } from "@/lib/stellar/contract";
@@ -330,7 +330,15 @@ export default function Home() {
         : await submitSignedTransaction(signedResult.signedTxXdr);
 
       if (isEscrowMode) {
-        const txDetails = await getSorobanTransaction(submission.hash);
+        setTx({
+          status: "submitting",
+          hash: submission.hash,
+          message: "Waiting for Stellar Testnet to confirm the escrow invocation...",
+          mode: "escrow",
+          onchainRecordId: null,
+        });
+
+        const txDetails = await waitForSorobanTransaction(submission.hash);
 
         if (txDetails.status !== "SUCCESS") {
           showFailedContractInvocation("escrow", submission.hash, txDetails.status);
@@ -355,7 +363,15 @@ export default function Home() {
         });
         await refreshEscrowVaultRead();
       } else if (isContractMode) {
-        const txDetails = await getSorobanTransaction(submission.hash);
+        setTx({
+          status: "submitting",
+          hash: submission.hash,
+          message: "Waiting for Stellar Testnet to confirm the contract invocation...",
+          mode: "contract",
+          onchainRecordId: null,
+        });
+
+        const txDetails = await waitForSorobanTransaction(submission.hash);
 
         if (txDetails.status !== "SUCCESS") {
           showFailedContractInvocation("contract", submission.hash, txDetails.status);
