@@ -33,12 +33,17 @@ Capture screenshots after running LumenFlow on Stellar Testnet with a supported 
    - wallet options / wallet picker visible
    - proves multi-wallet selection is available in the UI
 
+8. `11-escrow-mode-selected.png`
+   - Escrow mode selected in the payment form
+   - recipient / amount / memo filled for an escrow create
+
+9. `12-escrow-live-record.png`
+   - escrow read card showing a live Testnet escrow record (count > 0, latest escrow detail visible)
+
 ## Additional optional screenshots
 - `07-dark-light-mode.png`
 - `08-wallet-qr-code.png`
 - `09-address-book.png`
-- escrow mode selected
-- escrow read card showing a live Testnet record
 
 ## Capture notes
 - Use Stellar Testnet only.

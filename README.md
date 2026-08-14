@@ -41,10 +41,19 @@ Level 2 core requirements are implemented and verified locally, and Level 3 escr
   - Escrow vault contract ID: `CDY4BP6KMWEUSHRJFIBZVJW2TQN3BAX2VB3FAH6XCKDRDNVUJFJ6EDIQ`
 - **Contracts called from the frontend**
   - contract mode builds, signs, submits, and reads back a Payment Intent from the frontend flow
+  - escrow mode builds, signs, submits, and reads back live escrow records from the same frontend flow
 - **Transaction status visible**
   - UI states: `validating`, `signing`, `submitting`, `success`, `error`
 - **Minimum 2+ meaningful commits**
   - satisfied in repository history
+
+## Level 3 escrow coverage (local/Testnet, ahead of public site)
+- `escrow-vault` contract deployed to Stellar Testnet with `create_escrow`, `release_escrow`, `refund_escrow`, `get_escrow`, and `get_escrow_count`
+- 6 passing Rust contract tests (create, release, refund, and rejection paths)
+- frontend Escrow mode creates a live onchain escrow with recipient / amount / memo
+- frontend escrow read card shows live count and latest escrow record from the deployed contract
+- live create-escrow flow was verified end-to-end against the redeployed Testnet contract (see transaction hash above)
+- public Vercel deployment still needs a separate credentialed redeploy before it reflects escrow mode
 
 ## Submission evidence
 
@@ -52,13 +61,25 @@ Level 2 core requirements are implemented and verified locally, and Level 3 escr
 - Public GitHub repository:
   - https://github.com/tommycuong1904/lumenflow
 
-### Deployed contract
+### Deployed contracts
+
+#### Payment Intent (Level 2)
 - Contract ID:
   - `CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO`
 - Deploy transaction:
   - `1d910b784a363a499c23265397cddbbcba77540e25f9d72ec9c440dced40401e`
 - Contract explorer link:
   - https://lab.stellar.org/r/testnet/contract/CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO
+
+#### Escrow Vault (Level 3)
+- Contract ID:
+  - `CDY4BP6KMWEUSHRJFIBZVJW2TQN3BAX2VB3FAH6XCKDRDNVUJFJ6EDIQ`
+- Deploy transaction:
+  - `2c1fb056b52934f39a047a2fb0174978afcb1ba22d3ba8dcb4c3e4acb60b0005`
+- Live create-escrow verification transaction:
+  - `d1ea87d8b006fcfd8bb1e62f7eaeeb9f9642eb1ed28c0cb3ee3751ce06c2a92d`
+- Contract explorer link:
+  - https://lab.stellar.org/r/testnet/contract/CDY4BP6KMWEUSHRJFIBZVJW2TQN3BAX2VB3FAH6XCKDRDNVUJFJ6EDIQ
 
 
 ## Tech Stack
