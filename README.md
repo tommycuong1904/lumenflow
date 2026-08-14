@@ -204,6 +204,10 @@ Current screenshot set in the repo:
 |---|
 | ![Wallet options available](docs/screenshots/10-wallet-options-available.png) |
 
+| Escrow mode selected | Escrow live record |
+|---|---|
+| ![Escrow mode selected](docs/screenshots/11-escrow-mode-selected.png) | ![Escrow live record](docs/screenshots/12-escrow-live-record.png) |
+
 | Dark / Light mode | Wallet QR code | Address Book |
 |---|---|---|
 | ![Dark and light mode](docs/screenshots/07-dark-light-mode.png) | ![Wallet QR code](docs/screenshots/08-wallet-qr-code.png) | ![Address Book](docs/screenshots/09-address-book.png) |
