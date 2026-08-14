@@ -127,13 +127,26 @@ function formatTokenAmount(value: bigint | number | string) {
   return fractionText ? `${whole.toString()}.${fractionText}` : whole.toString();
 }
 
+/**
+ * Soroban SDK serializes fieldless Rust enums (e.g. `PaymentStatus::Pending`)
+ * as `{ tag: "Pending", values: [] }` over RPC, not as a plain string.
+ * `String(raw.status)` on that object always yields the useless
+ * "[object Object]" — pull the `tag` out explicitly instead.
+ */
+function normalizeContractStatus(status: unknown): string {
+  if (status && typeof status === "object" && "tag" in status) {
+    return String((status as { tag: unknown }).tag);
+  }
+  return String(status ?? "");
+}
+
 function normalizePaymentRecord(value: unknown): PaymentIntentRecord {
   const raw = value as {
     id: bigint | number | string;
     creator: string;
     recipient: string;
     amount: bigint | number | string;
-    status: string;
+    status: unknown;
   };
 
   return {
@@ -141,7 +154,7 @@ function normalizePaymentRecord(value: unknown): PaymentIntentRecord {
     creator: String(raw.creator),
     recipient: String(raw.recipient),
     amount: formatTokenAmount(raw.amount),
-    status: String(raw.status).toLowerCase() as PaymentIntentRecord["status"],
+    status: normalizeContractStatus(raw.status).toLowerCase() as PaymentIntentRecord["status"],
   };
 }
 
@@ -152,7 +165,7 @@ function normalizeEscrowVaultRecord(value: unknown): EscrowVaultRecord {
     payee: string;
     amount: bigint | number | string;
     memo?: string;
-    status: string;
+    status: unknown;
     created_at: bigint | number | string;
     updated_at: bigint | number | string;
   };
@@ -163,7 +176,7 @@ function normalizeEscrowVaultRecord(value: unknown): EscrowVaultRecord {
     payee: String(raw.payee),
     amount: formatTokenAmount(raw.amount),
     memo: String(raw.memo ?? ""),
-    status: String(raw.status).toLowerCase() as EscrowVaultRecord["status"],
+    status: normalizeContractStatus(raw.status).toLowerCase() as EscrowVaultRecord["status"],
     createdAt: Number(raw.created_at),
     updatedAt: Number(raw.updated_at),
   };
