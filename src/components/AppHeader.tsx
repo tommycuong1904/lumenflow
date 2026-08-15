@@ -13,31 +13,34 @@ const navItems = [
 export function AppHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-[color:color-mix(in_srgb,var(--color-surface)_82%,transparent)] backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 py-4 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-[1.65rem] font-semibold tracking-tight text-foreground sm:text-[1.85rem]">LumenFlow</span>
-            <Badge variant="outline" className="border-primary/20 bg-primary/8 px-2.5 py-0.75 text-[10px] tracking-[0.18em] text-primary uppercase">
-              Stellar Testnet
-            </Badge>
-          </div>
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-8 sm:py-4 lg:px-10">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
+          <span className="text-base font-bold tracking-tight text-foreground sm:text-[1.35rem]">
+            LumenFlow
+          </span>
+          <Badge
+            variant="outline"
+            className="border-primary/20 bg-primary/8 px-1.5 py-0.25 text-[7.5px] font-semibold tracking-[0.1em] text-primary uppercase sm:px-2 sm:py-0.5 sm:text-[8.5px] sm:tracking-[0.14em]"
+          >
+            <span className="hidden sm:inline">Stellar </span>Testnet
+          </Badge>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 lg:justify-end">
-          <nav aria-label="Section navigation" className="flex items-center gap-2 rounded-full border border-border/70 bg-secondary/30 px-2 py-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-all duration-200 hover:bg-secondary/80 hover:text-foreground hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-          <div className="flex shrink-0 items-center gap-3">
-            <ThemeToggle />
-            <HeaderWalletButton />
-          </div>
+
+        <nav aria-label="Section navigation" className="hidden md:flex items-center gap-1 rounded-full border border-border/70 bg-secondary/30 px-2 py-1">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all duration-200 hover:bg-secondary/80 hover:text-foreground active:scale-95"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <ThemeToggle />
+          <HeaderWalletButton />
         </div>
       </div>
     </header>

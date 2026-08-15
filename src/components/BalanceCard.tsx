@@ -50,15 +50,22 @@ export function BalanceCard({ balance, publicKey, onRefresh }: BalanceCardProps)
       </CardHeader>
 
       <CardContent className="space-y-5 px-6 pt-6 pb-6 sm:px-7">
-        <div className="rounded-[28px] border border-border/80 bg-background/40 p-5">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
+        <div className="overflow-hidden rounded-[28px] border border-border/80 bg-background/40 p-4 sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
+            <div className="min-w-0 flex-1">
               <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">Available balance</p>
-              <p className="mt-3 text-4xl font-semibold tracking-tight text-foreground">{formatBalance(balance.xlm)} XLM</p>
+              <div className="mt-2 flex flex-wrap items-baseline gap-1.5 sm:mt-3 sm:gap-2">
+                <span className="text-2xl font-bold tracking-tight text-foreground break-all sm:text-3xl lg:text-4xl">
+                  {formatBalance(balance.xlm)}
+                </span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:text-sm">
+                  XLM
+                </span>
+              </div>
             </div>
             <Badge
               variant="outline"
-              className={balance.funded ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-border bg-secondary/50 text-muted-foreground"}
+              className={balance.funded ? "shrink-0 border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "shrink-0 border-border bg-secondary/50 text-muted-foreground"}
             >
               {publicKey ? (balance.funded ? "Funded" : "Unfunded") : "No wallet"}
             </Badge>

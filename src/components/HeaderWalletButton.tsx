@@ -44,9 +44,9 @@ export function HeaderWalletButton() {
         type="button"
         onClick={() => void connectWallet()}
         disabled={wallet.loading || wallet.restoring}
-        className="rounded-full bg-primary px-5 text-primary-foreground hover:bg-[#7c3aed]"
+        className="rounded-full bg-primary px-3 py-1.5 text-xs sm:px-5 sm:py-2 sm:text-sm text-primary-foreground hover:bg-[#7c3aed]"
       >
-        {wallet.restoring ? "Restoring wallet..." : wallet.loading ? "Connecting..." : "Connect wallet"}
+        {wallet.restoring ? "Restoring..." : wallet.loading ? "Connecting..." : "Connect wallet"}
       </Button>
     );
   }
@@ -57,10 +57,12 @@ export function HeaderWalletButton() {
         type="button"
         variant="outline"
         onClick={() => setMenuOpen((open) => !open)}
-        className="rounded-full border-border bg-secondary/50 px-4 text-secondary-foreground hover:bg-secondary/80"
+        className="flex items-center gap-1.5 rounded-full border-border bg-secondary/50 px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm text-secondary-foreground hover:bg-secondary/80"
       >
-        {truncateAddress(wallet.publicKey ?? "")}
-        <span className="ml-2 text-xs">▼</span>
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+        <span className="hidden sm:inline">{truncateAddress(wallet.publicKey ?? "")}</span>
+        <span className="inline sm:hidden">{truncateAddress(wallet.publicKey ?? "", 4, 4)}</span>
+        <span className="text-[9px] opacity-70">▼</span>
       </Button>
       {menuOpen ? (
         <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-border bg-card/95 p-2 shadow-[var(--surface-shadow-card)] backdrop-blur-xl">

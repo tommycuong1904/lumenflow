@@ -62,6 +62,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Prefer concise responses by default: result, files changed, validation, blockers.
 - Do not explain implementation details or paste applied code unless requested.
 
+## Git & Version Control rules
+- **User review before Git actions**: After creating, modifying, or deleting files, ALWAYS stop and present the changes for user review and validation.
+- **Do not auto-commit or push**: Never run `git commit`, `git merge`, or `git push` without explicit confirmation or request from the user.
+
 ## Security
 - Never expose secrets, seed phrases, private keys, or `.env` values.
 - Do not read `.env` files unless the task specifically requires environment variable names.
