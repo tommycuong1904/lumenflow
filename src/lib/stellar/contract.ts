@@ -40,6 +40,20 @@ export type EscrowVaultRecord = {
   updatedAt: number;
 };
 
+export type EscrowContractEvent = {
+  id: string;
+  type: "created" | "released" | "refunded" | "unknown";
+  escrowId: string;
+  payer: string;
+  payee: string;
+  amount: string;
+  memo: string;
+  status: string;
+  timestamp: number;
+  ledger: number;
+  txHash: string;
+};
+
 export function isPaymentIntentContractConfigured() {
   return PAYMENT_INTENT_CONTRACT_ID.trim().length > 0;
 }

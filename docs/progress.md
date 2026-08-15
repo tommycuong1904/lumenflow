@@ -32,8 +32,10 @@ Payment-intent flow remains live and verified, and Level 3 escrow-vault is now d
 - App production build passes (`npm run build`).
 - TypeScript check passes (`npx tsc --noEmit`).
 - ESLint checks pass cleanly (`npm run lint`).
-- Combined test command passes (`npm run test:all` -> 5 Vitest + 6 Rust tests).
+- Combined test command passes (`npm run test:all` -> 7 Vitest + 6 Rust tests = 13 tests).
 - GitHub Actions CI/CD workflow created and verified green on GitHub remote (`LumenFlow CI/CD Pipeline` run #31890716920 passed: Frontend suite + Soroban contracts test & build).
+- Soroban RPC live event streaming helper and real-time Event Feed component integrated in `src/components/ContractEventFeed.tsx`.
+- Event stream auto-polls new ledger events every 7s with live toggle and manual sync.
 - Escrow vault contract builds for `wasm32v1-none` in release mode.
 - Escrow vault Rust tests pass (`cargo test` -> 6 passed).
 - Native transfer flow remains preserved.

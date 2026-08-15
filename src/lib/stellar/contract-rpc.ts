@@ -1,6 +1,6 @@
-import { BASE_FEE, Contract, Networks, TransactionBuilder, rpc, scValToNative } from "@stellar/stellar-sdk";
+import { BASE_FEE, Contract, Networks, TransactionBuilder, rpc, scValToNative, xdr } from "@stellar/stellar-sdk";
 
-import type { CreateEscrowVaultInput, CreatePaymentIntentInput, EscrowVaultRecord, PaymentIntentRecord } from "./contract";
+import type { CreateEscrowVaultInput, CreatePaymentIntentInput, EscrowContractEvent, EscrowVaultRecord, PaymentIntentRecord } from "./contract";
 import { getEscrowVaultConfig, getPaymentIntentConfig } from "./contract";
 import { buildCreateEscrowVaultArgs, buildCreatePaymentIntentArgs } from "./contract-payload";
 
@@ -226,4 +226,126 @@ export async function getEscrowVaultRecord(id: string) {
   const server = createSorobanRpcServer();
   const response = await server.queryContract(contractId, "get_escrow", { id: Number(id) }, Networks.TESTNET);
   return normalizeEscrowVaultRecord(response.result);
+}
+
+function parseScValSafely(val: unknown): unknown {
+  if (!val) return null;
+  if (typeof val === "string") {
+    try {
+      return scValToNative(xdr.ScVal.fromXDR(val, "base64"));
+    } catch {
+      return val;
+    }
+  }
+  try {
+    return scValToNative(val as xdr.ScVal);
+  } catch {
+    return val;
+  }
+}
+
+function parseRawEscrowEvent(rawEvent: rpc.Api.EventResponse, idx: number): EscrowContractEvent {
+  let topicName = "unknown";
+  let eventEscrowId = "";
+
+  try {
+    if (Array.isArray(rawEvent.topic)) {
+      const parsedTopics = rawEvent.topic.map((t) => parseScValSafely(t));
+      if (parsedTopics[0]) {
+        topicName = String(parsedTopics[0]).toLowerCase();
+      }
+      if (parsedTopics[1] !== undefined) {
+        eventEscrowId = String(parsedTopics[1]);
+      }
+    }
+  } catch {
+    // fallback
+  }
+
+  let parsedVal: Record<string, unknown> = {};
+  try {
+    if (rawEvent.value) {
+      parsedVal = (parseScValSafely(rawEvent.value) as Record<string, unknown>) ?? {};
+    }
+  } catch {
+    // fallback
+  }
+
+  const escrowId = eventEscrowId || (parsedVal.escrow_id ? String(parsedVal.escrow_id) : String(idx + 1));
+  const amount = parsedVal.amount ? formatTokenAmount(parsedVal.amount as bigint | number | string) : "0";
+  const payer = String(parsedVal.payer ?? "");
+  const payee = String(parsedVal.payee ?? "");
+  const memo = String(parsedVal.memo ?? "");
+  const rawStatus = parsedVal.status;
+  const status = normalizeContractStatus(Array.isArray(rawStatus) ? rawStatus[0] : rawStatus);
+  const timestamp = parsedVal.timestamp ? Number(parsedVal.timestamp) : Date.now() / 1000;
+
+  return {
+    id: `${rawEvent.txHash}-${idx}`,
+    type: (["created", "released", "refunded"].includes(topicName) ? topicName : "unknown") as EscrowContractEvent["type"],
+    escrowId,
+    payer,
+    payee,
+    amount,
+    memo,
+    status,
+    timestamp,
+    ledger: rawEvent.ledger,
+    txHash: rawEvent.txHash,
+  };
+}
+
+export async function getEscrowContractEvents(options?: {
+  limit?: number;
+  lookbackLedgers?: number;
+}): Promise<EscrowContractEvent[]> {
+  const { contractId, ready } = getEscrowVaultConfig();
+  if (!ready) return [];
+
+  const server = createSorobanRpcServer();
+  const latest = await server.getLatestLedger();
+  const lookback = options?.lookbackLedgers ?? 90000;
+  const startLedger = Math.max(1, latest.sequence - lookback);
+
+  try {
+    const response = await server.getEvents({
+      startLedger,
+      filters: [
+        {
+          type: "contract",
+          contractIds: [contractId],
+        },
+      ],
+      limit: options?.limit ?? 20,
+    });
+
+    if (!response.events || response.events.length === 0) {
+      return [];
+    }
+
+    return response.events.map((rawEvent, idx) => parseRawEscrowEvent(rawEvent, idx)).reverse();
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    const match = message.match(/range:\s*(\d+)\s*-\s*(\d+)/i);
+    if (match && match[1]) {
+      try {
+        const minLedger = parseInt(match[1], 10);
+        const retryResponse = await server.getEvents({
+          startLedger: minLedger,
+          filters: [
+            {
+              type: "contract",
+              contractIds: [contractId],
+            },
+          ],
+          limit: options?.limit ?? 20,
+        });
+        if (!retryResponse.events) return [];
+        return retryResponse.events.map((rawEvent, idx) => parseRawEscrowEvent(rawEvent, idx)).reverse();
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }
 }

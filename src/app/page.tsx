@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { BalanceCard } from "@/components/BalanceCard";
+import { ContractEventFeed } from "@/components/ContractEventFeed";
 import { SendPaymentForm } from "@/components/SendPaymentForm";
 import { TxResultCard } from "@/components/TxResultCard";
 import { WalletCard } from "@/components/WalletCard";
@@ -73,6 +74,7 @@ export default function Home() {
   const [form, setForm] = useState<SendFormState>(initialFormState);
   const [isConfirmingTransaction, setIsConfirmingTransaction] = useState(false);
   const [escrowVaultRead, setEscrowVaultRead] = useState<EscrowVaultReadState>(initialEscrowVaultReadState);
+  const [eventRefreshTrigger, setEventRefreshTrigger] = useState(0);
 
   const canRefreshBalance = useMemo(() => Boolean(wallet.publicKey), [wallet.publicKey]);
 
@@ -362,6 +364,7 @@ export default function Home() {
           onchainRecordId: escrowId,
         });
         await refreshEscrowVaultRead();
+        setEventRefreshTrigger((prev) => prev + 1);
       } else if (isContractMode) {
         setTx({
           status: "submitting",
@@ -584,6 +587,10 @@ export default function Home() {
           lastSuccessfulRecipient={tx.status === "success" ? tx.recipient : null}
         />
         <TxResultCard tx={tx} />
+      </section>
+
+      <section id="event-stream-section" className="mt-8 scroll-mt-32 animate-in fade-in slide-in-from-bottom-2 duration-500 [animation-delay:250ms]">
+        <ContractEventFeed refreshTrigger={eventRefreshTrigger} />
       </section>
     </main>
   );
