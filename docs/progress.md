@@ -33,7 +33,7 @@ Payment-intent flow remains live and verified, and Level 3 escrow-vault is now d
 - TypeScript check passes (`npx tsc --noEmit`).
 - ESLint checks pass cleanly (`npm run lint`).
 - Combined test command passes (`npm run test:all` -> 5 Vitest + 6 Rust tests).
-- GitHub Actions CI/CD workflow created at `.github/workflows/ci.yml`.
+- GitHub Actions CI/CD workflow created and verified green on GitHub remote (`LumenFlow CI/CD Pipeline` run #31890716920 passed: Frontend suite + Soroban contracts test & build).
 - Escrow vault contract builds for `wasm32v1-none` in release mode.
 - Escrow vault Rust tests pass (`cargo test` -> 6 passed).
 - Native transfer flow remains preserved.
@@ -61,7 +61,7 @@ Payment-intent flow remains live and verified, and Level 3 escrow-vault is now d
 
 ## Blockers
 - No current code blockers.
-- `.github/workflows/ci.yml` is ready to run upon push to GitHub remote.
+- GitHub Actions CI/CD workflow is active and passing on `main`.
 
 ## Branch / Repo State
 - Base branch: `main`
