@@ -1,10 +1,9 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { TxState } from "@/lib/stellar/types";
 import { cn } from "@/lib/utils";
-import { shortHash } from "@/lib/utils/format";
 
 type TxResultCardProps = {
   tx: TxState;

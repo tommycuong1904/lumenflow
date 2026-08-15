@@ -6,7 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:contracts": "cargo test --manifest-path contracts/escrow-vault/Cargo.toml",
+    "build:contracts": "cargo build --manifest-path contracts/escrow-vault/Cargo.toml --target wasm32v1-none --release",
+    "test:all": "npm test && npm run test:contracts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -33,6 +37,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }

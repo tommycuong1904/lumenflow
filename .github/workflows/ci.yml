@@ -1,0 +1,76 @@
+name: LumenFlow CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main", "feat/**", "feature/**", "level3/**"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend Quality & Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests (Vitest)
+        run: npm test
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript typecheck
+        run: npx tsc --noEmit
+
+      - name: Build Next.js application
+        env:
+          NEXT_PUBLIC_SOROBAN_RPC_URL: https://soroban-testnet.stellar.org
+          NEXT_PUBLIC_PAYMENT_INTENT_CONTRACT_ID: CBAEFZC6GIYE5H7ZDN3JVHH3TDAWBP5VGZCWWH4TDANWUIE2GXQWAGHO
+          NEXT_PUBLIC_ESCROW_VAULT_CONTRACT_ID: CDY4BP6KMWEUSHRJFIBZVJW2TQN3BAX2VB3FAH6XCKDRDNVUJFJ6EDIQ
+        run: npm run build
+
+  smart-contracts:
+    name: Soroban Smart Contracts Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none, wasm32-unknown-unknown
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            contracts/escrow-vault -> contracts/escrow-vault/target
+            contracts/payment-intent -> contracts/payment-intent/target
+
+      - name: Run Escrow Vault tests (cargo test)
+        run: cargo test --manifest-path contracts/escrow-vault/Cargo.toml --verbose
+
+      - name: Check Payment Intent contract (cargo check)
+        run: cargo check --manifest-path contracts/payment-intent/Cargo.toml
+
+      - name: Build Escrow Vault WASM contract
+        run: |
+          cargo build --manifest-path contracts/escrow-vault/Cargo.toml --target wasm32v1-none --release || \
+          cargo build --manifest-path contracts/escrow-vault/Cargo.toml --target wasm32-unknown-unknown --release

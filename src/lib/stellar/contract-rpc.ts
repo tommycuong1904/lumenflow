@@ -1,8 +1,8 @@
-import { BASE_FEE, Contract, Networks, Operation, TransactionBuilder, rpc, scValToNative } from "@stellar/stellar-sdk";
+import { BASE_FEE, Contract, Networks, TransactionBuilder, rpc, scValToNative } from "@stellar/stellar-sdk";
 
 import type { CreateEscrowVaultInput, CreatePaymentIntentInput, EscrowVaultRecord, PaymentIntentRecord } from "./contract";
 import { getEscrowVaultConfig, getPaymentIntentConfig } from "./contract";
-import { buildCreateEscrowVaultArgs, buildCreatePaymentIntentArgs, buildGetPaymentIntentArgs } from "./contract-payload";
+import { buildCreateEscrowVaultArgs, buildCreatePaymentIntentArgs } from "./contract-payload";
 
 export type ContractSubmitStatus = "missing_contract" | "pending" | "success" | "error";
 

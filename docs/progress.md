@@ -31,6 +31,9 @@ Payment-intent flow remains live and verified, and Level 3 escrow-vault is now d
 ## Validation Snapshot
 - App production build passes (`npm run build`).
 - TypeScript check passes (`npx tsc --noEmit`).
+- ESLint checks pass cleanly (`npm run lint`).
+- Combined test command passes (`npm run test:all` -> 5 Vitest + 6 Rust tests).
+- GitHub Actions CI/CD workflow created at `.github/workflows/ci.yml`.
 - Escrow vault contract builds for `wasm32v1-none` in release mode.
 - Escrow vault Rust tests pass (`cargo test` -> 6 passed).
 - Native transfer flow remains preserved.
@@ -57,9 +60,8 @@ Payment-intent flow remains live and verified, and Level 3 escrow-vault is now d
 - Refreshing after wallet connect no longer reopens wallet options or drops the UI into a disconnected prompt state.
 
 ## Blockers
-- No current code blocker for Level 2 core flow.
-- `.env.example` is now tracked in git (previously blocked by `.gitignore`'s `.env*` rule, force-added since it holds only variable names, no secrets).
-- Only optional polish / docs / packaging work remains.
+- No current code blockers.
+- `.github/workflows/ci.yml` is ready to run upon push to GitHub remote.
 
 ## Branch / Repo State
 - Base branch: `main`

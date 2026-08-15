@@ -17,7 +17,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - `docs/reference-starter-template.md` — optional bonus/rubric reference only
 
 ## Default loading
-- Read `docs/project-brief.md` for implementation tasks.
+- Read `docs/project-brief.md` only when the task depends on project scope, architecture, or product behavior.
 - Read `docs/progress.md` only when current status, blockers, branch/repo state, or submission readiness matters.
 - Read `docs/challenge.md` only when validating an official requirement.
 - Read `docs/reference-starter-template.md` only when the user asks about bonus features, scoring, or scope expansion.
@@ -54,6 +54,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Prefer the smallest correct edit over broad rewrites.
 - Avoid unnecessary installs, refactors, cleanup, formatting, and repeated failing commands.
 - Prefer targeted validation; run full production builds only after meaningful changes or when requested.
+- Do not reread unchanged files during the same task unless a specific detail must be re-verified.
 
 ## Documentation rules
 - Update `docs/progress.md` after meaningful project changes.
