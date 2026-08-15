@@ -26,3 +26,17 @@ export function buildCreateEscrowVaultArgs(payerAddress: string, payload: Create
     nativeToScVal(payload.memo, { type: "string" }),
   ];
 }
+
+export function buildReleaseEscrowVaultArgs(id: string | number, payerAddress: string) {
+  return [
+    nativeToScVal(BigInt(id), { type: "u64" }),
+    new Address(payerAddress).toScVal(),
+  ];
+}
+
+export function buildRefundEscrowVaultArgs(id: string | number, payerAddress: string) {
+  return [
+    nativeToScVal(BigInt(id), { type: "u64" }),
+    new Address(payerAddress).toScVal(),
+  ];
+}

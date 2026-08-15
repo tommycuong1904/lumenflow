@@ -1,17 +1,29 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Loader2, RotateCcw, ShieldCheck } from "lucide-react";
 import { BalanceCard } from "@/components/BalanceCard";
 import { ContractEventFeed } from "@/components/ContractEventFeed";
 import { SendPaymentForm } from "@/components/SendPaymentForm";
 import { TxResultCard } from "@/components/TxResultCard";
 import { WalletCard } from "@/components/WalletCard";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useLumenFlowWallet } from "@/components/LumenFlowShell";
 import { getXlmBalance } from "@/lib/stellar/horizon";
-import { getEscrowVaultCount, getEscrowVaultRecord, getPaymentIntentRecord, waitForSorobanTransaction, submitSignedContractTransaction, createEscrowVaultTransactionXdr, createPaymentIntentTransactionXdr } from "@/lib/stellar/contract-rpc";
+import {
+  createEscrowVaultTransactionXdr,
+  createPaymentIntentTransactionXdr,
+  createRefundEscrowVaultTransactionXdr,
+  createReleaseEscrowVaultTransactionXdr,
+  getEscrowVaultCount,
+  getEscrowVaultRecord,
+  getPaymentIntentRecord,
+  submitSignedContractTransaction,
+  waitForSorobanTransaction,
+} from "@/lib/stellar/contract-rpc";
 import { submitSignedTransaction } from "@/lib/stellar/submit";
 import type { BalanceState, SendFormState, TxState } from "@/lib/stellar/types";
 import type { EscrowVaultRecord } from "@/lib/stellar/contract";
@@ -75,6 +87,7 @@ export default function Home() {
   const [isConfirmingTransaction, setIsConfirmingTransaction] = useState(false);
   const [escrowVaultRead, setEscrowVaultRead] = useState<EscrowVaultReadState>(initialEscrowVaultReadState);
   const [eventRefreshTrigger, setEventRefreshTrigger] = useState(0);
+  const [actionLoading, setActionLoading] = useState<"release" | "refund" | null>(null);
 
   const canRefreshBalance = useMemo(() => Boolean(wallet.publicKey), [wallet.publicKey]);
 
@@ -249,6 +262,188 @@ export default function Home() {
     setIsConfirmingTransaction(false);
   }
 
+  async function handleReleaseEscrow(escrow: EscrowVaultRecord) {
+    if (!wallet.connected || !wallet.publicKey) {
+      setTx({ status: "error", hash: null, message: "Connect the payer wallet before releasing this escrow." });
+      return;
+    }
+
+    if (wallet.publicKey !== escrow.payer) {
+      setTx({ status: "error", hash: null, message: `Only the payer (${truncateAddress(escrow.payer)}) can release this escrow.` });
+      return;
+    }
+
+    setActionLoading("release");
+    setTx({
+      status: "validating",
+      hash: null,
+      message: `Preparing escrow release for Escrow #${escrow.id}...`,
+      mode: "escrow",
+      onchainRecordId: escrow.id,
+    });
+
+    try {
+      const transactionXdr = await createReleaseEscrowVaultTransactionXdr(wallet.publicKey, escrow.id);
+
+      setTx({
+        status: "signing",
+        hash: null,
+        message: "Approve the escrow release signature in your wallet to proceed.",
+        mode: "escrow",
+        onchainRecordId: escrow.id,
+      });
+
+      const signedResult = await signWalletTransaction(transactionXdr, wallet.publicKey);
+      if ("error" in signedResult) {
+        setTx({
+          status: "error",
+          hash: null,
+          message: signedResult.error ?? "Escrow release signing failed.",
+          mode: "escrow",
+          onchainRecordId: escrow.id,
+        });
+        setActionLoading(null);
+        return;
+      }
+
+      setTx({
+        status: "submitting",
+        hash: null,
+        message: "Submitting escrow release transaction to Stellar Testnet...",
+        mode: "escrow",
+        onchainRecordId: escrow.id,
+      });
+
+      const submission = await submitSignedContractTransaction(signedResult.signedTxXdr);
+
+      setTx({
+        status: "submitting",
+        hash: submission.hash,
+        message: "Waiting for Stellar Testnet to confirm escrow release...",
+        mode: "escrow",
+        onchainRecordId: escrow.id,
+      });
+
+      const txDetails = await waitForSorobanTransaction(submission.hash);
+      if (txDetails.status !== "SUCCESS") {
+        showFailedContractInvocation("escrow", submission.hash, txDetails.status);
+        setActionLoading(null);
+        return;
+      }
+
+      setTx({
+        status: "success",
+        hash: submission.hash,
+        message: `Escrow #${escrow.id} was successfully released on Stellar Testnet!`,
+        amount: escrow.amount,
+        recipient: escrow.payee,
+        memo: escrow.memo || null,
+        mode: "escrow",
+        onchainRecordId: escrow.id,
+      });
+
+      await refreshEscrowVaultRead();
+      setEventRefreshTrigger((prev) => prev + 1);
+      await refreshBalance(wallet.publicKey);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to release escrow.";
+      setTx({ status: "error", hash: null, message, mode: "escrow", onchainRecordId: escrow.id });
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleRefundEscrow(escrow: EscrowVaultRecord) {
+    if (!wallet.connected || !wallet.publicKey) {
+      setTx({ status: "error", hash: null, message: "Connect the payer wallet before refunding this escrow." });
+      return;
+    }
+
+    if (wallet.publicKey !== escrow.payer) {
+      setTx({ status: "error", hash: null, message: `Only the payer (${truncateAddress(escrow.payer)}) can refund this escrow.` });
+      return;
+    }
+
+    setActionLoading("refund");
+    setTx({
+      status: "validating",
+      hash: null,
+      message: `Preparing escrow refund for Escrow #${escrow.id}...`,
+      mode: "escrow",
+      onchainRecordId: escrow.id,
+    });
+
+    try {
+      const transactionXdr = await createRefundEscrowVaultTransactionXdr(wallet.publicKey, escrow.id);
+
+      setTx({
+        status: "signing",
+        hash: null,
+        message: "Approve the escrow refund signature in your wallet to proceed.",
+        mode: "escrow",
+        onchainRecordId: escrow.id,
+      });
+
+      const signedResult = await signWalletTransaction(transactionXdr, wallet.publicKey);
+      if ("error" in signedResult) {
+        setTx({
+          status: "error",
+          hash: null,
+          message: signedResult.error ?? "Escrow refund signing failed.",
+          mode: "escrow",
+          onchainRecordId: escrow.id,
+        });
+        setActionLoading(null);
+        return;
+      }
+
+      setTx({
+        status: "submitting",
+        hash: null,
+        message: "Submitting escrow refund transaction to Stellar Testnet...",
+        mode: "escrow",
+        onchainRecordId: escrow.id,
+      });
+
+      const submission = await submitSignedContractTransaction(signedResult.signedTxXdr);
+
+      setTx({
+        status: "submitting",
+        hash: submission.hash,
+        message: "Waiting for Stellar Testnet to confirm escrow refund...",
+        mode: "escrow",
+        onchainRecordId: escrow.id,
+      });
+
+      const txDetails = await waitForSorobanTransaction(submission.hash);
+      if (txDetails.status !== "SUCCESS") {
+        showFailedContractInvocation("escrow", submission.hash, txDetails.status);
+        setActionLoading(null);
+        return;
+      }
+
+      setTx({
+        status: "success",
+        hash: submission.hash,
+        message: `Escrow #${escrow.id} was successfully refunded on Stellar Testnet!`,
+        amount: escrow.amount,
+        recipient: escrow.payer,
+        memo: escrow.memo || null,
+        mode: "escrow",
+        onchainRecordId: escrow.id,
+      });
+
+      await refreshEscrowVaultRead();
+      setEventRefreshTrigger((prev) => prev + 1);
+      await refreshBalance(wallet.publicKey);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to refund escrow.";
+      setTx({ status: "error", hash: null, message, mode: "escrow", onchainRecordId: escrow.id });
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   async function handleConfirmSubmit() {
     if (!wallet.connected || !wallet.publicKey) {
       setTx({ status: "error", hash: null, message: "Connect a Stellar wallet before starting a transaction." });
@@ -274,21 +469,21 @@ export default function Home() {
 
       const transactionXdr = isEscrowMode
         ? await createEscrowVaultTransactionXdr(wallet.publicKey, {
-            payee: form.recipient.trim(),
-            amount: form.amount.trim(),
-            memo: form.memo.trim(),
-          })
+          payee: form.recipient.trim(),
+          amount: form.amount.trim(),
+          memo: form.memo.trim(),
+        })
         : isContractMode
           ? await createPaymentIntentTransactionXdr(wallet.publicKey, {
-              recipient: form.recipient.trim(),
-              amount: form.amount.trim(),
-            })
+            recipient: form.recipient.trim(),
+            amount: form.amount.trim(),
+          })
           : await createPaymentTransaction({
-              sourcePublicKey: wallet.publicKey,
-              destinationPublicKey: form.recipient.trim(),
-              amount: form.amount.trim(),
-              memo: form.memo,
-            });
+            sourcePublicKey: wallet.publicKey,
+            destinationPublicKey: form.recipient.trim(),
+            amount: form.amount.trim(),
+            memo: form.memo,
+          });
 
       setTx({
         status: "signing",
@@ -559,6 +754,57 @@ export default function Home() {
                     <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Memo</p>
                     <p className="mt-1 font-medium text-foreground">{escrowVaultRead.latest.memo || "No memo"}</p>
                   </div>
+
+                  {escrowVaultRead.latest.status === "created" ? (
+                    <div className="sm:col-span-2 mt-3 pt-3 border-t border-border/50 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="text-xs text-muted-foreground">
+                        {wallet.connected && wallet.publicKey === escrowVaultRead.latest.payer ? (
+                          <span className="text-emerald-400 font-medium flex items-center gap-1">
+                            <ShieldCheck className="h-3.5 w-3.5 inline text-emerald-400" />
+                            You are the payer of this escrow. You can release or refund funds.
+                          </span>
+                        ) : (
+                          <span>
+                            Connected wallet must be the payer (
+                            <span className="font-mono text-foreground">{truncateAddress(escrowVaultRead.latest.payer)}</span>) to release or refund.
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={!wallet.connected || wallet.publicKey !== escrowVaultRead.latest.payer || actionLoading !== null}
+                          onClick={() => escrowVaultRead.latest && void handleRefundEscrow(escrowVaultRead.latest)}
+                          className="h-8 rounded-full border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 text-xs cursor-pointer"
+                        >
+                          {actionLoading === "refund" ? (
+                            <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+                          ) : (
+                            <RotateCcw className="mr-1.5 h-3 w-3" />
+                          )}
+                          Refund Escrow
+                        </Button>
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={!wallet.connected || wallet.publicKey !== escrowVaultRead.latest.payer || actionLoading !== null}
+                          onClick={() => escrowVaultRead.latest && void handleReleaseEscrow(escrowVaultRead.latest)}
+                          className="h-8 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium cursor-pointer"
+                        >
+                          {actionLoading === "release" ? (
+                            <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+                          ) : (
+                            <ShieldCheck className="mr-1.5 h-3 w-3" />
+                          )}
+                          Release Escrow
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <p className="mt-4 text-sm leading-6 text-muted-foreground">

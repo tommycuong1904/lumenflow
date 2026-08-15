@@ -2,7 +2,7 @@ import { BASE_FEE, Contract, Networks, TransactionBuilder, rpc, scValToNative, x
 
 import type { CreateEscrowVaultInput, CreatePaymentIntentInput, EscrowContractEvent, EscrowVaultRecord, PaymentIntentRecord } from "./contract";
 import { getEscrowVaultConfig, getPaymentIntentConfig } from "./contract";
-import { buildCreateEscrowVaultArgs, buildCreatePaymentIntentArgs } from "./contract-payload";
+import { buildCreateEscrowVaultArgs, buildCreatePaymentIntentArgs, buildRefundEscrowVaultArgs, buildReleaseEscrowVaultArgs } from "./contract-payload";
 
 export type ContractSubmitStatus = "missing_contract" | "pending" | "success" | "error";
 
@@ -77,6 +77,52 @@ export async function createEscrowVaultTransactionXdr(sourcePublicKey: string, i
     networkPassphrase: Networks.TESTNET,
   })
     .addOperation(contract.call("create_escrow", ...buildCreateEscrowVaultArgs(sourcePublicKey, input)))
+    .setTimeout(30)
+    .build();
+
+  const prepared = await server.prepareTransaction(tx);
+  return prepared.toXDR();
+}
+
+export async function createReleaseEscrowVaultTransactionXdr(sourcePublicKey: string, escrowId: string | number) {
+  const { contractId, ready } = getEscrowVaultConfig();
+
+  if (!ready) {
+    throw new Error("Escrow vault contract is not configured.");
+  }
+
+  const server = createSorobanRpcServer();
+  const sourceAccount = await server.getAccount(sourcePublicKey);
+  const contract = new Contract(contractId);
+
+  const tx = new TransactionBuilder(sourceAccount, {
+    fee: BASE_FEE,
+    networkPassphrase: Networks.TESTNET,
+  })
+    .addOperation(contract.call("release_escrow", ...buildReleaseEscrowVaultArgs(escrowId, sourcePublicKey)))
+    .setTimeout(30)
+    .build();
+
+  const prepared = await server.prepareTransaction(tx);
+  return prepared.toXDR();
+}
+
+export async function createRefundEscrowVaultTransactionXdr(sourcePublicKey: string, escrowId: string | number) {
+  const { contractId, ready } = getEscrowVaultConfig();
+
+  if (!ready) {
+    throw new Error("Escrow vault contract is not configured.");
+  }
+
+  const server = createSorobanRpcServer();
+  const sourceAccount = await server.getAccount(sourcePublicKey);
+  const contract = new Contract(contractId);
+
+  const tx = new TransactionBuilder(sourceAccount, {
+    fee: BASE_FEE,
+    networkPassphrase: Networks.TESTNET,
+  })
+    .addOperation(contract.call("refund_escrow", ...buildRefundEscrowVaultArgs(escrowId, sourcePublicKey)))
     .setTimeout(30)
     .build();
 
