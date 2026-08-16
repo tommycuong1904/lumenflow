@@ -176,16 +176,22 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - **Live Demo URL**: [https://lumenflow-one.vercel.app/](https://lumenflow-one.vercel.app/)
 - **Commits**: 70+ meaningful commits in history.
 - **CI/CD Pipeline**: [GitHub Actions Workflow](https://github.com/tommycuong1904/lumenflow/actions) (Passing green).
-- **Screenshots Included**:
-  1. Mobile responsive UI
-  ![Mobile responsive UI](./docs/screenshots/13-mobile-responsive-ui.png)
-  2. CI/CD pipeline running on GitHub Actions
-  ![CI/CD pipeline running on GitHub Actions](./docs/screenshots/14-ci-cd-pipeline-running.png)
-  3. Test output with 17+ passing tests
-  ![Test output with 17+ passing tests](./docs/screenshots/15-test-output.png)
-- **Demo Video (1–2 minutes)**: `https://drive.google.com/file/d/11SrNut-5bOeuT_kWRODiyyvqWxJa4zRX/view?usp=sharing`
 
----
+### Screenshots
+
+- **Mobile responsive UI**  
+
+  ![Mobile responsive UI](./docs/screenshots/13-mobile-responsive-ui.png)
+
+- **CI/CD pipeline running on GitHub Actions**  
+
+  ![CI/CD pipeline running on GitHub Actions](./docs/screenshots/14-ci-cd-pipeline-running.png)
+
+- **Test output with 17+ passing tests**  
+
+  ![Test output with 17+ passing tests](./docs/screenshots/15-test-output.png)
+
+- **Demo Video (1–2 minutes)**: [Demo Video](https://drive.google.com/file/d/11SrNut-5bOeuT_kWRODiyyvqWxJa4zRX/view?usp=sharing)
 
 ## 📂 Project Structure
 
