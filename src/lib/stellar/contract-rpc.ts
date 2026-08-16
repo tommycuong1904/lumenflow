@@ -345,17 +345,20 @@ export async function getEscrowContractEvents(options?: {
   limit?: number;
   lookbackLedgers?: number;
 }): Promise<EscrowContractEvent[]> {
+  // Default lookback is 5000 ledgers to avoid RPC range errors.
+  // Users can increase this if they need a longer history.
   const { contractId, ready } = getEscrowVaultConfig();
   if (!ready) return [];
 
   const server = createSorobanRpcServer();
   const latest = await server.getLatestLedger();
-  const lookback = options?.lookbackLedgers ?? 90000;
+  const lookback = options?.lookbackLedgers ?? 5000; // default to 5000 ledgers for stability
   const startLedger = Math.max(1, latest.sequence - lookback);
 
   try {
     const response = await server.getEvents({
       startLedger,
+      endLedger: latest.sequence,
       filters: [
         {
           type: "contract",
@@ -370,28 +373,29 @@ export async function getEscrowContractEvents(options?: {
     }
 
     return response.events.map((rawEvent, idx) => parseRawEscrowEvent(rawEvent, idx)).reverse();
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    const match = message.match(/range:\s*(\d+)\s*-\s*(\d+)/i);
-    if (match && match[1]) {
-      try {
-        const minLedger = parseInt(match[1], 10);
-        const retryResponse = await server.getEvents({
-          startLedger: minLedger,
-          filters: [
-            {
-              type: "contract",
-              contractIds: [contractId],
-            },
-          ],
-          limit: options?.limit ?? 20,
-        });
-        if (!retryResponse.events) return [];
-        return retryResponse.events.map((rawEvent, idx) => parseRawEscrowEvent(rawEvent, idx)).reverse();
-      } catch {
-        return [];
+    } catch (error: unknown) {
+      console.error('Error fetching escrow contract events:', error);
+      const message = error instanceof Error ? error.message : String(error);
+      const match = message.match(/range:\s*(\d+)\s*-\s*(\d+)/i);
+      if (match && match[1]) {
+        try {
+          const minLedger = parseInt(match[1], 10);
+          const retryResponse = await server.getEvents({
+            startLedger: minLedger,
+            filters: [
+              {
+                type: "contract",
+                contractIds: [contractId],
+              },
+            ],
+            limit: options?.limit ?? 20,
+          });
+          if (!retryResponse.events) return [];
+          return retryResponse.events.map((rawEvent, idx) => parseRawEscrowEvent(rawEvent, idx)).reverse();
+        } catch {
+          return [];
+        }
       }
+      return [];
     }
-    return [];
-  }
 }

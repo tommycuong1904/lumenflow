@@ -178,8 +178,11 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - **CI/CD Pipeline**: [GitHub Actions Workflow](https://github.com/tommycuong1904/lumenflow/actions) (Passing green).
 - **Screenshots Included**:
   1. Mobile responsive UI
+  ![Mobile responsive UI](./docs/screenshots/13-mobile-responsive-ui.png)
   2. CI/CD pipeline running on GitHub Actions
+  ![CI/CD pipeline running on GitHub Actions](./docs/screenshots/14-ci-cd-pipeline-running.png)
   3. Test output with 17+ passing tests
+  ![Test output with 17+ passing tests](./docs/screenshots/15-test-output.png)
 - **Demo Video (1–2 minutes)**: `[Add your video link here]`
 
 ---
