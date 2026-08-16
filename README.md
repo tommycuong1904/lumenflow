@@ -183,7 +183,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
   ![CI/CD pipeline running on GitHub Actions](./docs/screenshots/14-ci-cd-pipeline-running.png)
   3. Test output with 17+ passing tests
   ![Test output with 17+ passing tests](./docs/screenshots/15-test-output.png)
-- **Demo Video (1–2 minutes)**: `[Add your video link here]`
+- **Demo Video (1–2 minutes)**: `https://drive.google.com/file/d/11SrNut-5bOeuT_kWRODiyyvqWxJa4zRX/view?usp=sharing`
 
 ---
 
